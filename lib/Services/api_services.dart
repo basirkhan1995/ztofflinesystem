@@ -54,7 +54,6 @@ class ApiServices {
         receiveTimeout: const Duration(seconds: 2),
         validateStatus: (status) => status != null && status < 500,
       ));
-
       for (final host in ['127.0.0.1', 'localhost']) {
         try {
           final response = await dio.get('http://$host/rapi/get_ip.php');
