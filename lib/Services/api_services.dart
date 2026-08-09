@@ -55,7 +55,6 @@ class ApiServices {
         validateStatus: (status) => status != null && status < 500,
       ));
 
-      // Try both 127.0.0.1 and localhost
       for (final host in ['127.0.0.1', 'localhost']) {
         try {
           final response = await dio.get('http://$host/rapi/get_ip.php');
