@@ -1584,7 +1584,7 @@ class AppLocalizationsFa extends AppLocalizations {
       'مبلغ باقیمانده به حساب انتخاب شده اضافه خواهد شد';
 
   @override
-  String get paymentSummary => 'خلاصه پرداخت';
+  String get paymentSummary => 'جزئیات رسید';
 
   @override
   String get cashPaid => 'پرداخت نقدی';
@@ -3458,4 +3458,58 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get itemsCount => 'تعداد قلم';
+
+  @override
+  String get applyDiscount => 'ثبت به عنوان تخفیف';
+
+  @override
+  String get connectedTo => 'اتصال به دستگاه محلی';
+
+  @override
+  String get notConnected => 'قطع اتصال';
+
+  @override
+  String get serverIp =>
+      'از این آی‌ پی برای اتصال دستگاه‌ های دیگر به این سرور استفاده کنید';
+
+  @override
+  String get remoteServerIp => 'آی‌ پی سرور مقصد';
+
+  @override
+  String get localhost => 'دستگاه محلی';
+
+  @override
+  String get autoFind => 'اتصال خودکار';
+
+  @override
+  String get connectToDevice => 'اتصال به دستگاه محلی';
+
+  @override
+  String get searching => 'در حال جستجو...';
+
+  @override
+  String get disconnect => 'قطع اتصال';
+
+  @override
+  String get connectionFailedMessage =>
+      'ارتباط با سرور برقرار نشد، لطفاً اتصال سرور را بررسی کنید.';
+
+  @override
+  String get connectingTitle => 'در حال اتصال';
+
+  @override
+  String get noServerFound => 'سرور یافت نشد';
+
+  @override
+  String get noServerFoundMessage =>
+      'هیچ سروری پیدا نشد. لطفاً بررسی کنید که سرور در حال اجرا باشد و دوباره تلاش کنید.';
+
+  @override
+  String get disconnectedTitle => 'قطع ارتباط';
+
+  @override
+  String get connectedToLocal => 'اتصال به سرور محلی';
+
+  @override
+  String get stockTitle => 'موجودی';
 }

@@ -934,7 +934,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         "${locale.unitPrice} ($accountCcy)",
                       ),
                     ),
-                  SizedBox(width: 150, child: Text("${locale.salePrice} %")),
+                  SizedBox(width: 150, child: Text(locale.salePrice)),
                   SizedBox(
                     width: 150,
                     child: Text("${locale.landedPrice} ($baseCurrency)"),
@@ -1731,8 +1731,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _productController;
   late TextEditingController _headerProductController;
 
-  bool _isPercentageMode = true;
-  double _currentPurchasePrice = 0.0;
+
   bool _isUpdating = false;
   bool _isEditingLocalAmount = false;
   Timer? _amountDebounce;
@@ -1752,21 +1751,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     _storageController = TextEditingController(text: widget.item.storageName);
     _localAmountController = TextEditingController(text: _getLocalAmountText());
     _lastExchangeRate = _getCurrentExchangeRate();
-    _currentPurchasePrice = widget.item.purPrice ?? 0.0;
 
-    // 🔴 Initialize sell price controller
+// ✅ Initialize sell price controller
     _sellPriceController = TextEditingController();
-
-    // 🔴 SIMPLE: If we have proSPP from API, display it directly
-    if (widget.item.sellPricePercentage != null &&
-        widget.item.sellPricePercentage! > 0) {
-      _isPercentageMode = true;
-      _sellPriceController.text = widget.item.sellPricePercentage!.toStringAsFixed(1);
-    } else {
-      _initializeSellPriceController();
-    }
-
+    _initializeSellPriceController();
     widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
+
   }
 
   // Helper method to get local amount text
@@ -2097,7 +2087,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
   void _initializeSellPriceController() {
     final existingController = widget.sellPriceControllers[widget.item.rowId];
-    final currentValue = widget.item.sellPriceAmount;
 
     if (existingController != null) {
       _sellPriceController = existingController;
@@ -2106,34 +2095,16 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
     }
 
-    // 🔴 SIMPLE: If we have a percentage from API, just display it
-    if (widget.item.sellPricePercentage != null &&
-        widget.item.sellPricePercentage! > 0) {
-      _isPercentageMode = true;
-      _sellPriceController.text = widget.item.sellPricePercentage!.toStringAsFixed(1);
-      return; // ✅ DONE - no calculations needed
+    // ✅ Check sellPriceAmountOriginal first
+    if (widget.item.sellPriceAmountOriginal != null &&
+        widget.item.sellPriceAmountOriginal! > 0) {
+      _sellPriceController.text = widget.item.sellPriceAmountOriginal!.toAmount();
     }
-
-    // Only use amount logic if NO percentage is stored
-    if (currentValue > 0) {
-      if (currentValue <= 100 && _currentPurchasePrice > 0) {
-        final amountFromPercentage = _currentPurchasePrice * (currentValue / 100);
-        final existingAmount = widget.item.sellPriceAmountOriginal ?? 0;
-
-        if (existingAmount > 0) {
-          _isPercentageMode = false;
-          _sellPriceController.text = existingAmount.toAmount();
-        } else if ((amountFromPercentage - currentValue).abs() < 0.01) {
-          _isPercentageMode = true;
-          _sellPriceController.text = currentValue.toString();
-        } else {
-          _isPercentageMode = false;
-          _sellPriceController.text = currentValue.toAmount();
-        }
-      } else {
-        _isPercentageMode = false;
-        _sellPriceController.text = currentValue.toAmount();
-      }
+    // ✅ sellPrice is the actual amount, not a percentage!
+    else if (widget.item.sellPrice != null &&
+        widget.item.sellPrice! > 0) {
+      _sellPriceController.text = widget.item.sellPrice!.toAmount();
+      widget.item.sellPriceAmountOriginal = widget.item.sellPrice;
     } else {
       _sellPriceController.text = '';
     }
@@ -2216,85 +2187,20 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     });
   }
 
-  void _updateSellPriceFromPercentage() {
-    if (_isUpdating) return;
-    _isUpdating = true;
-
-    final percentage = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
-    if (percentage >= 1 && percentage <= 100 && _currentPurchasePrice > 0) {
-      final amount = _currentPurchasePrice * (percentage / 100);
-      widget.onSellPriceChanged(widget.item.rowId, amount);
-      widget.item.sellPricePercentage = percentage;
-      widget.item.sellPriceAmountOriginal = amount;
-    } else if (percentage == 0) {
-      widget.onSellPriceChanged(widget.item.rowId, 0);
-      widget.item.sellPricePercentage = 0;
-      widget.item.sellPriceAmountOriginal = 0;
-    }
-
-    _isUpdating = false;
-  }
-
   void _updateSellPriceFromAmount() {
     if (_isUpdating) return;
     _isUpdating = true;
 
     final amount = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
-    if (amount > 0 && _currentPurchasePrice > 0) {
-      final percentage = (amount / _currentPurchasePrice) * 100;
-      final clampedPercentage = percentage.clamp(1.0, 100.0);
 
-      widget.onSellPriceChanged(widget.item.rowId, amount);
-      widget.item.sellPricePercentage = clampedPercentage;
-      widget.item.sellPriceAmountOriginal = amount;
-
-      if ((percentage - clampedPercentage).abs() > 0.01) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Sell price capped at ${clampedPercentage.toStringAsFixed(1)}% of purchase price'),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
-        });
-      }
-    } else if (amount == 0) {
-      widget.onSellPriceChanged(widget.item.rowId, 0);
-      widget.item.sellPricePercentage = 0;
-      widget.item.sellPriceAmountOriginal = 0;
-    }
+    widget.onSellPriceChanged(widget.item.rowId, amount);
+    widget.item.sellPriceAmountOriginal = amount;
+    widget.item.sellPrice = amount; // ✅ Store the amount directly
 
     _isUpdating = false;
   }
 
-  void _toggleMode() {
-    setState(() {
-      _isPercentageMode = !_isPercentageMode;
 
-      if (_isPercentageMode) {
-        final currentAmount = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
-        if (currentAmount > 0 && _currentPurchasePrice > 0) {
-          final percentage = (currentAmount / _currentPurchasePrice) * 100;
-          final clampedPercentage = percentage.clamp(1.0, 100.0);
-          _sellPriceController.text = clampedPercentage.toStringAsFixed(1);
-          widget.item.sellPricePercentage = clampedPercentage;
-        } else {
-          _sellPriceController.text = widget.item.sellPricePercentage?.toStringAsFixed(1) ?? '';
-        }
-      } else {
-        final currentPercentage = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
-        if (currentPercentage >= 1 && currentPercentage <= 100 && _currentPurchasePrice > 0) {
-          final amount = _currentPurchasePrice * (currentPercentage / 100);
-          _sellPriceController.text = amount.toAmount();
-          widget.item.sellPriceAmountOriginal = amount;
-        } else {
-          _sellPriceController.text = widget.item.sellPriceAmountOriginal?.toAmount() ?? '';
-        }
-      }
-    });
-  }
 
   @override
   void didUpdateWidget(covariant _PurchaseItemRow oldWidget) {
@@ -2330,12 +2236,16 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         }
       }
 
-      // 🔴 SIMPLE: If proSPP changed, update display directly
-      if (widget.item.sellPricePercentage != oldWidget.item.sellPricePercentage &&
-          widget.item.sellPricePercentage != null &&
-          widget.item.sellPricePercentage! > 0) {
-        _isPercentageMode = true;
-        _sellPriceController.text = widget.item.sellPricePercentage!.toStringAsFixed(1);
+      // ✅ Update sell price display if changed (now reading from percentage)
+      if (widget.item.sellPrice != oldWidget.item.sellPrice) {
+        final newAmount = widget.item.sellPrice ?? 0;
+        if (newAmount > 0) {
+          _sellPriceController.text = newAmount.toAmount();
+          widget.item.sellPriceAmountOriginal = newAmount;
+        } else {
+          _sellPriceController.text = '';
+          widget.item.sellPriceAmountOriginal = 0;
+        }
       }
 
       // Update purchase price and local amount
@@ -2343,7 +2253,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       bool needsUpdate = false;
 
       if (widget.item.purPrice != oldWidget.item.purPrice) {
-        _currentPurchasePrice = widget.item.purPrice ?? 0.0;
 
         final priceController = widget.purchasePriceControllers[widget.item.rowId];
         if (priceController != null && widget.item.purPrice != null) {
@@ -2713,76 +2622,39 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     ),
                   ),
 
-                /// Sell Price with Mode Toggle
+                /// Sell Price (Simple Amount)
                 SizedBox(
                   width: 150,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _sellPriceController,
-                          focusNode: safeNode(
-                              isWholeSale
-                                  ? (needsLocalConversion ? 5 : 4)
-                                  : (needsLocalConversion ? 4 : 3)
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              _isPercentageMode
-                                  ? RegExp(r'^[0-9]*\.?[0-9]{0,2}')
-                                  : RegExp(r'^[0-9]*\.?[0-9]{0,2}'),
-                            ),
-                          ],
-                          decoration: InputDecoration(
-                            hintText: _isPercentageMode ? '0-100%' : locale.salePrice,
-                            border: InputBorder.none,
-                            isDense: true,
-                            suffixText: _isPercentageMode ? '%' : null,
-                          ),
-                          onChanged: (value) {
-                            if (_isPercentageMode) {
-                              final percentage = double.tryParse(value.replaceAll(',', ''));
-                              if (percentage != null && (percentage < 0 || percentage > 100)) {
-                                final clamped = percentage.clamp(0.0, 100.0);
-                                _sellPriceController.text = clamped.toString();
-                                _updateSellPriceFromPercentage();
-                              } else {
-                                _updateSellPriceFromPercentage();
-                              }
-                            } else {
-                              _updateSellPriceFromAmount();
-                            }
-                          },
-                          onSubmitted: (_) {
-                            if (widget.isLastRow) {
-                              _addNewRowAndFocus();
-                            } else {
-                              focusNext(
-                                  isWholeSale
-                                      ? (needsLocalConversion ? 5 : 4)
-                                      : (needsLocalConversion ? 4 : 3)
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: 32,
-                        child: IconButton(
-                          icon: Icon(
-                            _isPercentageMode ? Icons.percent : Icons.attach_money,
-                            size: 16,
-                          ),
-                          onPressed: widget.isLocked && widget.item.sellPricePercentage != null
-                              ? null // No toggle when locked
-                              : _toggleMode,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          tooltip: _isPercentageMode ? 'Switch to amount' : 'Switch to percentage',
-                        ),
-                      ),
+                  child: TextField(
+                    controller: _sellPriceController,
+                    focusNode: safeNode(
+                        isWholeSale
+                            ? (needsLocalConversion ? 5 : 4)
+                            : (needsLocalConversion ? 4 : 3)
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                     ],
+                    decoration: InputDecoration(
+                      hintText: locale.salePrice,
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                    onChanged: (value) {
+                      _updateSellPriceFromAmount();
+                    },
+                    onSubmitted: (_) {
+                      if (widget.isLastRow) {
+                        _addNewRowAndFocus();
+                      } else {
+                        focusNext(
+                            isWholeSale
+                                ? (needsLocalConversion ? 5 : 4)
+                                : (needsLocalConversion ? 4 : 3)
+                        );
+                      }
+                    },
                   ),
                 ),
 

@@ -174,35 +174,41 @@ class ProductsModel {
 }
 
 class Batch {
-  final int? storage;
+  final int? storageId;
+  final String? storageName;
   final int? batch;
   final String? availableQuantity;
 
   Batch({
-    this.storage,
+    this.storageId,
+    this.storageName,
     this.batch,
     this.availableQuantity,
   });
 
   Batch copyWith({
-    int? storage,
+    int? storageId,
+    String? storageName,
     int? batch,
     String? availableQuantity,
   }) =>
       Batch(
-        storage: storage ?? this.storage,
+        storageId: storageId ?? this.storageId,
+        storageName: storageName ?? this.storageName,
         batch: batch ?? this.batch,
         availableQuantity: availableQuantity ?? this.availableQuantity,
       );
 
   factory Batch.fromMap(Map<String, dynamic> json) => Batch(
-    storage: json["storage"],
+    storageId: json["storage_id"],
+    storageName: json["storage_name"],
     batch: json["batch"],
     availableQuantity: json["available_Quantity"],
   );
 
   Map<String, dynamic> toMap() => {
-    "storage": storage,
+    "storage_id": storageId,
+    "storage_name": storageName,
     "batch": batch,
     "available_Quantity": availableQuantity,
   };

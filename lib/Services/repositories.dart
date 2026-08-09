@@ -187,7 +187,15 @@ class Repositories {
 
     return response.data;
   }
-
+  Future<Map<String, dynamic>> deleteAccount({required int accNumber}) async {
+    final response = await api.delete(
+      endpoint: "/stakeholder/account.php",
+      data: {
+        "accNumber": accNumber
+      },
+    );
+    return response.data;
+  }
   ///Stakeholder | Individuals .................................................
   Future<List<IndividualsModel>> getStakeholders({int? indId, String? query, CancelToken? cancelToken}) async {
     // Build query parameters dynamically

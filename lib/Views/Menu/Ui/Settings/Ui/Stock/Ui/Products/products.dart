@@ -9,6 +9,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/pro
 import '../../../../../../../../Features/Other/toast.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/search_field.dart';
+import '../../../../features/Visibility/bloc/settings_visible_bloc.dart';
 import 'add_edit_product.dart';
 import 'bloc/products_bloc.dart';
 
@@ -64,6 +65,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
 
   // Build header for different screen sizes
   Widget _buildHeader(AppLocalizations tr, TextTheme textTheme, ColorScheme color) {
+
     if (widget.isMobile) {
       // Mobile header - stacked layout
       return Padding(
@@ -288,6 +290,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
 
   // Build table header for different screen sizes
   Widget _buildTableHeader(AppLocalizations tr, TextStyle? titleStyle, ColorScheme color) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     if (widget.isMobile) {
       return const SizedBox.shrink();
     } else if (widget.isTablet) {
@@ -345,7 +348,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
         child: Row(
           children: [
             SizedBox(
-              width: 60,
+              width: 50,
               child: Text(
                 '#',
                 style: titleStyle?.copyWith(
@@ -354,7 +357,16 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(
+              width: 130,
+              child: Text(
+                tr.productCode,
+                style: titleStyle?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: color.surface,
+                ),
+              ),
+            ),
             Expanded(
               flex: 2,
               child: Text(
@@ -387,6 +399,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 textAlign: TextAlign.center,
               ),
             ),
+            if(visibility.isWholeSale)
             SizedBox(
               width: 100,
               child: Text(
@@ -428,6 +441,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
 
   // Build product item based on screen size
   Widget _buildProductItem(ProductsModel product, int index, TextTheme textTheme, ColorScheme color, AppLocalizations tr) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     if (widget.isMobile) {
       // Mobile card view with better design
       return Card(
@@ -742,7 +756,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               children: [
                 // ID
                 SizedBox(
-                  width: 60,
+                  width: 50,
                   child: Text(
                     product.proId.toString(),
                     style: textTheme.bodySmall?.copyWith(
@@ -750,7 +764,17 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+
+
+                SizedBox(
+                  width: 130,
+                  child: Text(
+                    product.proCode.toString(),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: color.outline,
+                    ),
+                  ),
+                ),
                 // Product Name
                 Expanded(
                   flex: 2,
@@ -792,6 +816,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 ),
 
                 // Total Items
+                if(visibility.isWholeSale)
                 SizedBox(
                   width: 100,
                   child: Text(

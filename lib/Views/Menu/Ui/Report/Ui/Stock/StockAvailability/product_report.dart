@@ -26,6 +26,7 @@ import '../../../../Settings/Ui/Stock/Ui/ProductCategory/features/pro_cat_drop.d
 import '../../../../Settings/Ui/Stock/Ui/Products/add_edit_product.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_model.dart';
+import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../UserReport/status_drop.dart';
 import 'features/sales_filter.dart';
 import 'model/product_report_model.dart';
@@ -1165,7 +1166,7 @@ class _DesktopState extends State<_Desktop> {
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
         color: Theme.of(context).colorScheme.surface
     );
@@ -1428,6 +1429,7 @@ class _DesktopState extends State<_Desktop> {
                 SizedBox(
                     width: 120,
                     child: Text(tr.qty, style: titleStyle)),
+                if(visibility.isWholeSale)
                 SizedBox(
                     width: 120,
                     child: Text(tr.batchTitle, style: titleStyle)),
@@ -1536,6 +1538,7 @@ class _DesktopState extends State<_Desktop> {
                                             : stk.available.toAmount(decimal: 0),
                                         style: style
                                     )),
+                                    if(visibility.isWholeSale)
                                     SizedBox(width: 120, child: Text(stk.batch.toAmount(decimal: 0), style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 80, child: Text(stk.proUnit ?? "", style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 150, child: Text(

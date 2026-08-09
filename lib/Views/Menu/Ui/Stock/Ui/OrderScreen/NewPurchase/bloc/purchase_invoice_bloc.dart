@@ -95,7 +95,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       for (var i = 0; i < records.length; i++) {
         final record = records[i];
         final stkId = record['stkID'];
-        final sellPercentage = record['sellPercentage'] as double? ?? 0.0;
+        final sellPrice = record['sellPrice'] as double? ?? 0.0;
         items.add(PurchaseInvoiceItem(
           itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_$i',
           productId: record['productId'].toString(),
@@ -105,14 +105,12 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           unit: record['unit'] as String,
           purPrice: record['purchasePrice'],
           landedPrice: record['landedPrice'],
-          sellPriceAmount: record['sellPercentage'] ?? 0,
-          sellPricePercentage: sellPercentage,
+          sellPriceAmount: record['sellPrice'] ?? 0,
+          sellPrice: sellPrice,
           storageId: record['storageId'],
           stkId: stkId,
           storageName: record['storageName'] as String,
-          sellPriceAmountOriginal: sellPercentage > 0 && record['purchasePrice'] > 0
-              ? (record['purchasePrice'] * (sellPercentage / 100))
-              : 0,
+          sellPriceAmountOriginal: sellPrice,
         ));
       }
 
@@ -285,7 +283,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             storageName: event.storageName ?? item.storageName,
             storageId: event.storageId ?? item.storageId,
             exchangeRate: current.exchangeRate ?? 1.0,
-            sellPricePercentage: item.sellPricePercentage,
+            sellPrice: item.sellPrice,
             sellPriceAmountOriginal: item.sellPriceAmountOriginal,
           );
         }
@@ -337,7 +335,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         storageId: 0,
         exchangeRate: 1.0,
         localAmount: 0,
-        sellPricePercentage: 0,
+        sellPrice: 0,
         sellPriceAmountOriginal: 0,
       )],
       payments: [],
@@ -662,7 +660,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       // Build records for API
       final records = current.items.map((item) {
         // Use stored percentage if available, otherwise calculate from amount
-        double? percentageToSave = item.sellPricePercentage;
+        double? percentageToSave = item.sellPrice;
 
         // If no percentage stored but we have an amount, calculate it
         if (percentageToSave == null && item.sellPriceAmount > 0 && item.purPrice != null && item.purPrice! > 0) {
@@ -674,7 +672,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
           stkQtyInBatch: item.stkBatch,
-          sellPercentage: percentageToSave,
+          stkSalePrice: percentageToSave,
           pPrice: item.purPrice,
         );
       }).toList();
@@ -966,7 +964,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final records = current.items.map((item) {
 
         // Use stored percentage if available, otherwise calculate from amount
-        double? percentageToSave = item.sellPricePercentage;
+        double? percentageToSave = item.sellPrice;
 
         // If no percentage stored but we have an amount, calculate it
         if (percentageToSave == null && item.sellPriceAmount > 0 && item.purPrice != null && item.purPrice! > 0) {
@@ -979,7 +977,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
           stkQtyInBatch: item.stkBatch,
-          sellPercentage: percentageToSave,
+          stkSalePrice: percentageToSave,
           pPrice: item.purPrice,
         );
       }).toList();

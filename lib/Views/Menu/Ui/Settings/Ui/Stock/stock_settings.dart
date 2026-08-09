@@ -218,7 +218,6 @@ class _BaseStockSettings extends StatelessWidget {
         },
       );
     } else {
-      // Desktop layout (original)
       return BlocBuilder<StockSettingsTabBloc, StockSettingsTabState>(
         builder: (context, state) {
           return GenericMenuWithScreen(

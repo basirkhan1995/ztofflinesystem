@@ -19,10 +19,12 @@ class AmountDisplay extends StatelessWidget {
   final Color? convertedColor;
   final double fontSize;
   final Color? signColor;
+  final int decimal;
 
   const AmountDisplay({
     super.key,
     this.title,
+    this.decimal = 2,
     required this.baseAmount,
     required this.baseCurrency,
     this.convertedAmount,
@@ -36,7 +38,7 @@ class AmountDisplay extends StatelessWidget {
   });
 
   String _getFormattedAmountWithSign(double amount) {
-    final formattedAmount = amount.toAmount();
+    final formattedAmount = amount.toAmount(decimal: decimal);
     if (!showSign) return formattedAmount;
 
     final sign = isPositive ? '+' : '-';

@@ -9,6 +9,7 @@ import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dar
 import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/add_edit_product.dart';
 import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
+import '../../Views/Menu/Ui/Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 
 typedef OnProductSelected = void Function(ProductsModel? product);
 typedef ProductListItemBuilder = Widget Function(BuildContext context, ProductsModel product);
@@ -337,6 +338,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
   }
 
   void _showOverlay() {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     if (_overlayEntry != null) {
       _refreshOverlay();
       return;
@@ -562,6 +564,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
                                             textAlign: TextAlign.end,
                                             style: titleStyle),
                                       ),
+                                      if(visibility.isWholeSale)
                                       SizedBox(
                                         width: 100,
                                         child: Text(tr.totalItems,
@@ -715,6 +718,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
   }
 
   Widget _buildDefaultListItem(ProductsModel product) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
@@ -755,22 +759,22 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
             ),
           ),
 
-
           SizedBox(
             width: 100,
             child: Text(
               product.totalQty ?? 'N/A',
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if(visibility.isWholeSale)
           SizedBox(
             width: 100,
             child: Text(
               product.totalItems ?? 'N/A',
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),

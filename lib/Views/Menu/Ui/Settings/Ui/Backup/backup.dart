@@ -145,16 +145,7 @@ class _BackupContent extends StatelessWidget {
                               _showBrowseRestoreDialog(context);
                             },
                             icon: Icons.folder_outlined,
-                            label: state is BackupLoading
-                                ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                                : Text(
+                            label: Text(
                               tr.browse,
                               style: const TextStyle(fontSize: 16),
                             ),
@@ -569,9 +560,11 @@ class _BackupContent extends StatelessWidget {
 
   void _showRenameDialog(BuildContext context, String filePath) {
     final file = File(filePath);
-    final currentName = file.path.split('/').last;
+    // ✅ Use Platform.pathSeparator for cross-platform compatibility
+    final currentName = file.path.split(Platform.pathSeparator).last;
     final textController = TextEditingController(text: currentName);
     final tr = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -588,7 +581,7 @@ class _BackupContent extends StatelessWidget {
               onSubmit: (value) {
                 if (value.isNotEmpty && value != currentName) {
                   final parentDir = file.parent.path;
-                  final newPath = '$parentDir/$value';
+                  final newPath = '$parentDir${Platform.pathSeparator}$value'; // ✅ Use Platform.pathSeparator
                   context.read<BackupBloc>().add(RenameBackupEvent(filePath, newPath));
                   Navigator.pop(context);
                 }
@@ -607,7 +600,7 @@ class _BackupContent extends StatelessWidget {
               final newName = textController.text.trim();
               if (newName.isNotEmpty && newName != currentName) {
                 final parentDir = file.parent.path;
-                final newPath = '$parentDir/$newName';
+                final newPath = '$parentDir${Platform.pathSeparator}$newName'; // ✅ Use Platform.pathSeparator
                 context.read<BackupBloc>().add(RenameBackupEvent(filePath, newPath));
                 Navigator.pop(context);
               }

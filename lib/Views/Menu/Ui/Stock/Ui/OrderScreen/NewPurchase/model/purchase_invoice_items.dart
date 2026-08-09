@@ -3,7 +3,7 @@ class PurchaseInvoiceItem {
   String productId;
   String productName;
   int qty;
-  double? sellPricePercentage;
+  double? sellPrice;
   double? sellPriceAmountOriginal;
   int stkBatch;
   double? purPrice;
@@ -30,7 +30,7 @@ class PurchaseInvoiceItem {
     this.localAmount,
     this.exchangeRate,
     this.unit,
-    this.sellPricePercentage,
+    this.sellPrice,
     this.sellPriceAmountOriginal,
     this.stkId
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
@@ -92,7 +92,7 @@ class PurchaseInvoiceItem {
       localAmount: localAmount ?? this.localAmount,
       exchangeRate: exchangeRate ?? this.exchangeRate,
       unit: unit ?? this.unit,
-      sellPricePercentage: sellPricePercentage ?? this.sellPricePercentage,
+      sellPrice: sellPricePercentage ?? this.sellPrice,
       sellPriceAmountOriginal: sellPriceAmountOriginal ?? this.sellPriceAmountOriginal,
       stkId: stkId ?? this.stkId
     );
@@ -104,7 +104,7 @@ class PurchaseInvoiceRecord {
   final int? stkId;
   final int stgID;
   final double quantity;
-  final double? sellPercentage;
+  final double? stkSalePrice;
   final int stkQtyInBatch;
   final double? pPrice;
   PurchaseInvoiceRecord({
@@ -113,7 +113,7 @@ class PurchaseInvoiceRecord {
     required this.stgID,
     required this.stkQtyInBatch,
     required this.quantity,
-    this.sellPercentage,
+    this.stkSalePrice,
     this.pPrice,
   });
   Map<String, dynamic> toJson() => {
@@ -122,7 +122,7 @@ class PurchaseInvoiceRecord {
     'stkStorage': stgID,
     'stkQuantity': quantity.toString(),
     'stkQtyInBatch': stkQtyInBatch,
-    'stkSalePercentage': sellPercentage,
+    'stkSalePrice': stkSalePrice,
     'stkPurPrice': (pPrice ?? 0.0).toString(),
   };
 }

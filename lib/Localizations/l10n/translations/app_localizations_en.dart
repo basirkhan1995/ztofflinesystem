@@ -1594,7 +1594,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remaining amount will be added to selected account';
 
   @override
-  String get paymentSummary => 'Payment Summary';
+  String get paymentSummary => 'Payment Receipt';
 
   @override
   String get cashPaid => 'Cash Paid';
@@ -3470,4 +3470,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get itemsCount => 'Items Count';
+
+  @override
+  String get applyDiscount => 'Apply as discount';
+
+  @override
+  String get connectedTo => 'Connected to local host.';
+
+  @override
+  String get notConnected => 'Not Connected';
+
+  @override
+  String get serverIp => 'Use this IP to connect other devices to this server.';
+
+  @override
+  String get remoteServerIp => 'Remote Server IP';
+
+  @override
+  String get localhost => 'Localhost';
+
+  @override
+  String get autoFind => 'AutoFind';
+
+  @override
+  String get connectToDevice => 'This Device';
+
+  @override
+  String get searching => 'Searching...';
+
+  @override
+  String get disconnect => 'Disconnect';
+
+  @override
+  String get connectionFailedMessage =>
+      'Could not connect to server, check server connection?';
+
+  @override
+  String get connectingTitle => 'Connecting...';
+
+  @override
+  String get noServerFound => 'No Server Found';
+
+  @override
+  String get noServerFoundMessage =>
+      'Could not find any server. Please check if the server is running and try again.';
+
+  @override
+  String get disconnectedTitle => 'Disconnected';
+
+  @override
+  String get connectedToLocal => 'Connected to Localhost.';
+
+  @override
+  String get stockTitle => 'Stock';
 }

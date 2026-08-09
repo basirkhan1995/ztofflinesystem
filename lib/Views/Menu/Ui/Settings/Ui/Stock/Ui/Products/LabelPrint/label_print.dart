@@ -41,7 +41,7 @@ class ProductLabelData {
 // Batch option for selection
 class BatchOption {
   final int batch;
-  final int? storage;
+  final String? storage;
   final String? availableQuantity;
 
   BatchOption({
@@ -814,7 +814,7 @@ extension ProductLabelPrintExtension on ProductsModel {
       currencyCode: currencyCode,
       batches: batches?.map((b) => BatchOption(
         batch: b.batch ?? 0,
-        storage: b.storage,
+        storage: b.storageName,
         availableQuantity: b.availableQuantity,
       )).toList() ?? [],
     );

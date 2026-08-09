@@ -5,13 +5,13 @@ import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/z_dialog.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
-import 'package:zaitoonpro/Features/Widgets/section_title.dart';
 import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/%D9%8FSingleProduct/single_product_bloc.dart';
 import '../../../../../../../../Features/PrintSettings/bloc/PageSize/paper_size_cubit.dart';
 import '../../../../../../../Auth/bloc/auth_bloc.dart';
+import '../../../../features/Visibility/bloc/settings_visible_bloc.dart';
 import '../ProductCategory/features/pro_cat_drop.dart';
 import '../ProductCategory/model/pro_cat_model.dart';
 import 'Features/GradeDrop/grade_drop.dart';
@@ -285,6 +285,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
   }
 
   Widget _buildBatchesSection(List<Batch> batches, AppLocalizations tr, ColorScheme color, TextTheme textTheme) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final totalBox = batches.fold(0, (sum, batch) =>
     sum + (int.tryParse(batch.availableQuantity ?? "0") ?? 0));
 
@@ -337,6 +338,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                     ),
                   ),
                 ),
+                if(visibility.isWholeSale)
                 Expanded(
                   child: Text(
                     textAlign: TextAlign.end,
@@ -348,7 +350,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                     ),
                   ),
                 ),
-
+                if(visibility.isWholeSale)
                 Expanded(
                   child: Text(
                     tr.totalItems,
@@ -389,7 +391,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                       Expanded(
                         flex: 3,
                         child: Text(
-                          batch.storage?.toString() ?? "N/A",
+                          batch.storageName?.toString() ?? "N/A",
                           style: textTheme.bodyMedium?.copyWith(
                               fontSize: 15,
                               fontWeight: FontWeight.w500),
@@ -407,6 +409,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                           ),
                         ),
                       ),
+                      if(visibility.isWholeSale)
                       Expanded(
                         child: Text(
                           textAlign: TextAlign.end,
@@ -416,6 +419,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                               fontWeight: FontWeight.w500),
                         ),
                       ),
+                      if(visibility.isWholeSale)
                       Expanded(
                         child: Text(
                           (quantity * batchNumber).toString(),
@@ -509,7 +513,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       currencyCode: currencyCode, // Pass currency from auth state, null if not available
       batches: _loadedProduct?.batches?.map((b) => BatchOption(
         batch: b.batch ?? 0,
-        storage: b.storage,
+        storage: b.storageName,
         availableQuantity: b.availableQuantity,
       )).toList() ?? [],
     );
@@ -1054,7 +1058,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
             if (state is SingleProductLoadingState && _isLoadingProduct) {
               return Center(
                 child: ZFormDialog(
-                  width: MediaQuery.of(context).size.width * .5,
+                  width: MediaQuery.of(context).size.width * .45,
                   icon: Icons.production_quantity_limits_rounded,
                   onAction: () {},
                   title: isEdit ? tr.update.toUpperCase() : tr.newKeyword,
@@ -1074,10 +1078,10 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
             }
 
             return ZFormDialog(
-              width: MediaQuery.of(context).size.width * .5,
+              width: MediaQuery.of(context).size.width * .45,
               icon: Icons.production_quantity_limits_rounded,
               onAction: _isSubmitting ? null : onSubmit,
-              title: isEdit ? tr.update.toUpperCase() : tr.newKeyword,
+              title: isEdit ? "${tr.update.toUpperCase()} | ${widget.proId}" : tr.newKeyword,
               actionLabel: _buildActionButton(tr, color, isEdit, context.watch<ProductsBloc>().state),
               child: Form(
                 key: formKey,
@@ -1087,7 +1091,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                   children: [
                     if (_errorMessage != null)
                       Container(
-                        margin: const EdgeInsets.only(bottom: 16),
+                        margin: const EdgeInsets.only(bottom: 5),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.red.shade50,
@@ -1122,28 +1126,40 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                         children: [
                           // Tab Bar
                           Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            margin: const EdgeInsets.symmetric(horizontal: 0),
                             padding: EdgeInsets.zero,
                             width: 350,
                             decoration: BoxDecoration(
                               color: color.surface,
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(
-                                color: color.outline.withValues(alpha: .1),
-                              ),
                             ),
                             child: TabBar(
                               indicatorPadding: EdgeInsets.zero,
                               labelPadding: EdgeInsets.zero,
+                              indicatorAnimation: TabIndicatorAnimation.elastic,
+                              automaticIndicatorColorAdjustment: true,
+                              indicatorWeight: 2,
+                              indicator: BoxDecoration(
+                                color: color.primary.withValues(alpha: .1),
+                                borderRadius: BorderRadius.circular(2),
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: color.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
                               tabs: [
                                 Tab(
                                   text: tr.productDetails,
+                                  height: 40,
                                 ),
                                 Tab(
                                   text: tr.productImages,
+                                  height: 40,
                                 ),
                                 Tab(
-                                  text: tr.inventory,
+                                  text: tr.stockTitle,
+                                  height: 40,
                                 ),
                               ],
                               labelColor: color.primary,
@@ -1154,8 +1170,6 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                               padding: const EdgeInsets.symmetric(horizontal: 8),
                             ),
                           ),
-
-                          const SizedBox(height: 16),
 
                           // Tab Bar View
                           SizedBox(
@@ -1224,8 +1238,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               Expanded(
                                                 child: ZTextFieldEntitled(
                                                   title: tr.unit,
-                                                  hint: "مثال، دانه، جوره، قطی",
-                                                  suggestions: ["دانه", "جوره", "حلقه","قطی","سیت"],
+                                                  hint: "واحد محصول",
+                                                  suggestions: ["جوره", "کارتن", "بسته","دانه","سیت"],
                                                   showClearButton: true,
                                                   controller: productUnit,
                                                 ),
@@ -1247,8 +1261,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               Expanded(
                                                 child: ZTextFieldEntitled(
                                                   title: tr.productBrands,
-                                                  hint: "مثال، کیهان، امر، کمپنی",
-                                                  suggestions: ["کیهان", "امر", "کمپنی"],
+                                                  hint: "برند محصول",
+                                                  suggestions: [],
                                                   showClearButton: true,
                                                   controller: productBrand,
                                                 ),
@@ -1257,8 +1271,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               Expanded(
                                                 child: ZTextFieldEntitled(
                                                   title: tr.productModel,
-                                                  hint: "مثال، هندا، اسکارت، دوپلکه",
-                                                  suggestions: ["هندا", "اسکارت", "دوپلکه"],
+                                                  hint: "مدل محصول",
+                                                  suggestions: [""],
                                                   showClearButton: true,
                                                   controller: productModel,
                                                 ),
@@ -1267,8 +1281,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               Expanded(
                                                 child: ZTextFieldEntitled(
                                                   title: tr.madeIn,
-                                                  hint: "مثال، چین، پاکستان، ایران",
-                                                  suggestions: ["چین", "پاکستان", "ایران"],
+                                                  hint: "ساخت محصول",
+                                                  suggestions: ["چین"],
                                                   showClearButton: true,
                                                   controller: madeIn,
                                                 ),
@@ -1281,8 +1295,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               Expanded(
                                                 child: ZTextFieldEntitled(
                                                   title: tr.productColor,
-                                                  hint: "مثال، سفید، سیاه",
-                                                  suggestions: ["سیاه", "سفید", "سرخ","جگری","زرد"],
+                                                  hint: "رنگ محصول",
+                                                  suggestions: ["جگری", "آبی","سیاه","سفید"],
                                                   showClearButton: true,
                                                   controller: productColor,
                                                 ),
@@ -1291,7 +1305,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               Expanded(
                                                 child: ZTextFieldEntitled(
                                                   title: tr.minimumStock,
-                                                  hint: "مثال، 10 یا 20",
+                                                  hint: "تعداد هشدار موجودی",
                                                   controller: minimumStock,
                                                 ),
                                               ),
@@ -1299,9 +1313,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               Expanded(
                                                 child: ZTextFieldEntitled(
                                                   title: tr.salePrice,
-                                                  hint: "%20, 30%",
+                                                  hint: "قیمت پیش فرض",
                                                   controller: salePricePercentage,
-                                                  end: const Text("%"),
                                                   keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
                                                   inputFormat: [
                                                     FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
@@ -1313,52 +1326,13 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                                     final number = double.tryParse(cleanValue);
                                                     if (number == null) return 'Please enter a valid number';
                                                     if (number < 0) return 'Cannot be negative';
-                                                    if (number > 100) return 'Maximum 100%';
                                                     return null;
                                                   },
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 15),
-                                          // Shipping details moved here
-                                          SectionTitle(title: tr.shippingDetails),
-                                          const SizedBox(height: 5),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: ZTextFieldEntitled(
-                                                  title: tr.weight,
-                                                  hint: "30 Kg",
-                                                  controller: weight,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: ZTextFieldEntitled(
-                                                  title: tr.lenghtTitle,
-                                                  hint: "12 cm",
-                                                  controller: l,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: ZTextFieldEntitled(
-                                                  title: tr.breadth,
-                                                  hint: "12 cm",
-                                                  controller: b,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: ZTextFieldEntitled(
-                                                  title: tr.widthTitle,
-                                                  hint: "12 cm",
-                                                  controller: w,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+
                                         ],
                                       ),
                                     ],

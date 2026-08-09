@@ -21,6 +21,7 @@ import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
@@ -632,6 +633,7 @@ class _DesktopState extends State<_Desktop> {
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
+    final visibility = context.read<SettingsVisibleBloc>().state;
     TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.surface);
     final color = Theme.of(context).colorScheme;
     return Scaffold(
@@ -863,6 +865,7 @@ class _DesktopState extends State<_Desktop> {
                   SizedBox(
                       width: 120,
                       child: Text(tr.qty,style: titleStyle, textAlign: TextAlign.center)),
+                  if(visibility.isWholeSale)
                   SizedBox(
                       width: 120,
                       child: Text(tr.batchTitle,style: titleStyle, textAlign: TextAlign.center)),
@@ -956,6 +959,7 @@ class _DesktopState extends State<_Desktop> {
                                   ),
                                 ),
                               ),
+                              if(visibility.isWholeSale)
                               SizedBox(
                                   width: 120,
                                   child: Text(stock.batch.toAmount(decimal: 0), textAlign: TextAlign.center)),

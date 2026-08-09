@@ -2683,6 +2683,15 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   Timer? _debounce;
   late StreamSubscription _blocSubscription;
 
+  double _getRemainingInBase() {
+    final enteredAmount = double.tryParse(
+        _cashPaymentController.text.replaceAll(',', '')
+    ) ?? 0;
+
+    final fullPayment = _currentState.grandTotal * _cashExchangeRate;
+    final remainingInSelectedCurrency = (fullPayment - enteredAmount).clamp(0, double.infinity);
+    return remainingInSelectedCurrency / _cashExchangeRate;
+  }
   String _selectedCashCurrency = '';
   double _cashExchangeRate = 1.0;
   bool _isLoadingCashRate = false;
@@ -3072,7 +3081,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     return ZFormDialog(
       title: "${tr.payment} - ${_getPaymentModeLabel(paymentMode)}",
       icon: Icons.payment,
-      width: 550,
+      width: 600,
       actionLabel: Text(tr.confirm),
       isActionTrue: isActionEnabled,
       onAction: _onConfirm,
@@ -3222,6 +3231,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                 children: [
 
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
                         flex: 5,
@@ -3270,7 +3280,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                       if (needsCashConversion) ...[
                         SizedBox(width: 5),
                         Expanded(
-                          flex: 3,
+                          flex: 2,
                           child: ZTextFieldEntitled(
                             controller: _cashExchangeRateController,
                             title: "${tr.exchangeRate} (1 $_baseCurrency = $_selectedCashCurrency)",
@@ -3339,17 +3349,20 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.credit_card, size: 20, color: Theme.of(context).colorScheme.primary),
+                              Icon(Icons.credit_card, size: 20, color: Theme.of(context).colorScheme.outline),
                               const SizedBox(width: 8),
-                              Text(tr.paymentSummary.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text(tr.paymentSummary.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 15)),
                             ],
                           ),
                           Text("${_currentState.customerAccount?.accName} (${_currentState.customerAccount?.accNumber})", style: const TextStyle(fontWeight: FontWeight.w600)),
                         ],
                       ),
+                      const SizedBox(height: 3),
+                      Divider(),
                       const SizedBox(height: 3),
                       AmountDisplay(
                           title: tr.cashReceipt,
@@ -3363,6 +3376,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                       AmountDisplay(
                         title: tr.amountAddedToAR,
                         baseAmount: remainingAmountInBase,
+                        decimal: 2,
                         baseCurrency: _baseCurrency,
                         convertedAmount: (widget.state.fromCurrency != widget.state.toCurrency && remainingAmountInBase > 0)
                             ? remainingAmountInAccountCurrency
@@ -3372,6 +3386,54 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         baseColor: Colors.green,
                         signColor: Colors.green,
                         convertedCurrency: accountCurrency,
+                      ),
+                      const SizedBox(height: 5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              // Calculate remaining in base currency
+                              final remainingInBase = _getRemainingInBase();
+
+                              // Apply as general discount automatically
+                              context.read<SaleInvoiceBloc>().add(
+                                UpdateGeneralDiscountEvent(
+                                  discountValue: remainingInBase,
+                                  discountType: DiscountType.amount,
+                                ),
+                              );
+
+                              // Update the remaining display
+                              setState(() {
+                                _generalDiscountController.text = remainingInBase.toStringAsFixed(2);
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withValues(alpha: .1),
+                                borderRadius: BorderRadius.circular(2),
+                                border: Border.all(color: Colors.orange.withValues(alpha: .3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.auto_fix_high, size: 16, color: Colors.orange),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    tr.applyDiscount,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.orange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
 
                       Divider(),
