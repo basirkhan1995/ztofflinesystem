@@ -60,8 +60,6 @@ class ApiServices {
           if (response.statusCode == 200) {
             final data = response.data;
             if (data is Map && data['success'] == true) {
-              // DON'T change _isLocalhost or _skipConnectivityCheck
-              // Just return true if local server is found
               return true;
             }
           }
