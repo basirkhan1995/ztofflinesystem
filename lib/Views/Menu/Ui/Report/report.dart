@@ -176,7 +176,6 @@ class _DesktopState extends State<_Desktop> {
 
               const SizedBox(height: 15),
 
-              //_buildSectionTitle(title: "${tr.users} & ${tr.activities}",icon: Icons.supervised_user_circle_sharp),
               SectionTitle(title: "${tr.users} | ${tr.activities}"),
               SizedBox(height: 8),
               _buildButtonGroup(activitiesButtons, color),
