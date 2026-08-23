@@ -555,6 +555,7 @@ class _DesktopState extends State<_Desktop> {
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthenticatedState) {
@@ -663,27 +664,13 @@ class _DesktopState extends State<_Desktop> {
         /// ================= LEFT SIDE (IMAGE) =================
         Expanded(
           flex: 4,
-          child: Container(
-            padding: EdgeInsets.all(35),
-            color: theme.colorScheme.surfaceContainerLowest,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                /// Image
-                Opacity(
-                  opacity: 0.9,
-                  child: Image.asset(
-                    "assets/images/bg.png",
-                    fit: BoxFit.contain,
-                  ),
-                ),
-
-                /// VERY LIGHT overlay (not gradient)
-                Container(
-                  color: theme.colorScheme.surface.withValues(alpha: 0.1),
-                ),
-
-              ],
+          child: SizedBox(
+            child: Opacity(
+              opacity: 0.9,
+              child: Image.asset(
+                "assets/images/bg.png",
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),

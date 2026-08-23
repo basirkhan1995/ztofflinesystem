@@ -49,7 +49,7 @@ class ZTabContainer<T> extends StatefulWidget {
   final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry tabBarPadding;
   final MainAxisAlignment tabAlignment;
-  final Color tabContainerColor;
+  final Color? tabContainerColor;
 
   const ZTabContainer({
     super.key,
@@ -164,11 +164,8 @@ class _ZTabContainerState<T> extends State<ZTabContainer<T>> {
           margin: widget.margin,
           padding: widget.tabBarPadding,
           decoration: BoxDecoration(
-            color: widget.tabContainerColor,
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(5),
-                topRight: Radius.circular(5)
-            ),
+            color: widget.tabContainerColor ?? Colors.transparent,
+            borderRadius: BorderRadius.circular(4)
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

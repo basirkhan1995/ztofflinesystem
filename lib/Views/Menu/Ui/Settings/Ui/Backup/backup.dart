@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
@@ -72,13 +73,13 @@ class _BackupContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     return Scaffold(
-
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ZCover(
-            radius: 4,
-            color: Theme.of(context).colorScheme.surface,
+            radius: 7,
+            color: Theme.of(context).colorScheme.primary.withAlpha(30),
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -95,8 +96,8 @@ class _BackupContent extends StatelessWidget {
                   Text(
                     tr.downloadBackupMsg,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline.withValues(alpha: .8),
-                      fontSize: 14
+                      color: Theme.of(context).colorScheme.outline,
+                      fontSize: context.scaledFont(0.010)
                     ),
                   ),
                   const SizedBox(height: 15),

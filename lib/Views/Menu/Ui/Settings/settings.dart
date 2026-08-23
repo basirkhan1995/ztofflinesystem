@@ -38,6 +38,7 @@ class _Desktop extends StatelessWidget {
     }
     final login = state.loginData;
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: BlocBuilder<SettingsTabBloc, SettingsTabState>(
         builder: (context, state) {
           final tabs = <ZTabItem<SettingsTabName>>[
@@ -146,7 +147,7 @@ class _Desktop extends StatelessWidget {
             selectedColor: Theme.of(context).colorScheme.primary,
             unselectedTextColor: Theme.of(context).colorScheme.secondary,
             selectedTextColor: Theme.of(context).colorScheme.surface,
-            tabContainerColor: Theme.of(context).colorScheme.surface,
+
           );
         },
       ),

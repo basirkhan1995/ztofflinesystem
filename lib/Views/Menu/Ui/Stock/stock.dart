@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/shortcut.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
 import 'package:zaitoonpro/Features/Other/z_dialog.dart';
+import 'package:zaitoonpro/Features/Other/znavigator.dart';
 import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/StockAvailability/product_report.dart';
@@ -21,6 +22,7 @@ import '../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
 import '../Report/Ui/Stock/Cardx/Ui/cardx.dart';
 import 'Ui/GoodsShift/goods_shift.dart';
+import 'Ui/OrderScreen/NewPurchase/bloc/purchase_invoice_bloc.dart';
 import 'Ui/Orders/bloc/orders_bloc.dart';
 import 'bloc/stock_tab_bloc.dart';
 
@@ -250,14 +252,7 @@ class _StockViewState extends State<StockView> {
   }
 
   // Desktop/Tablet Layout - Using Rounded Tabs with Shortcut Panel
-  Widget _buildDesktopTabletLayout(
-      BuildContext context,
-      LoginData login,
-      ColorScheme color,
-      AppLocalizations locale,
-      double opacity, {
-        required bool isTablet,
-      }) {
+  Widget _buildDesktopTabletLayout(BuildContext context, LoginData login, ColorScheme color, AppLocalizations locale, double opacity, {required bool isTablet,}) {
     return Row(
       children: [
         // Left side - Tab Content with Rounded tabs
@@ -419,7 +414,13 @@ class _StockViewState extends State<StockView> {
                 label: Text(locale.newPurchase),
                 icon: Icons.shopping_bag_outlined,
                 width: double.infinity,
-                onPressed: () => Utils.goto(context, NewPurchaseOrderView()),
+                onPressed: (){
+                  context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
+                  // A tiny delay to ensure state is cleared before navigation
+                  Future.delayed(const Duration(milliseconds: 50), () {
+                    ZNavigator.goto(NewPurchaseOrderView());
+                  });
+                },
               ),
 
             if (login.hasPermission(57) ?? false)

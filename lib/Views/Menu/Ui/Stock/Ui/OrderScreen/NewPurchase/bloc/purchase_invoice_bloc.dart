@@ -321,8 +321,10 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
   void _onInitialize(InitializePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
     emit(PurchaseInvoiceLoaded(
-      items: [PurchaseInvoiceItem(
+      items: [
+        PurchaseInvoiceItem(
         productId: '',
+        itemId: '${DateTime.now().millisecondsSinceEpoch}', // Unique ID
         productName: '',
         unit: '',
         stkId: null,
@@ -354,6 +356,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     emit(PurchaseInvoiceLoaded(
       items: [PurchaseInvoiceItem(
         productId: '',
+        itemId: '',
         productName: '',
         qty: 1,
         stkBatch: 1,

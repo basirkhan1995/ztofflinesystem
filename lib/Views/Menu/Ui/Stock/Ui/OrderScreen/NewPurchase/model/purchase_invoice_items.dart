@@ -92,7 +92,7 @@ class PurchaseInvoiceItem {
       localAmount: localAmount ?? this.localAmount,
       exchangeRate: exchangeRate ?? this.exchangeRate,
       unit: unit ?? this.unit,
-      sellPrice: sellPricePercentage ?? this.sellPrice,
+      sellPrice: sellPricePercentage ?? sellPrice,
       sellPriceAmountOriginal: sellPriceAmountOriginal ?? this.sellPriceAmountOriginal,
       stkId: stkId ?? this.stkId
     );
