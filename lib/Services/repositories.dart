@@ -2875,7 +2875,7 @@ class Repositories {
         '${now.hour.toString().padLeft(2, '0')}-${now.minute.toString().padLeft(
         2, '0')}';
 
-    final filePath = '${backupDir.path}/kayhan_backup_$formattedDate.sql';
+    final filePath = '${backupDir.path}/zBackup_$formattedDate.sql';
 
     await api.downloadFile(
       endpoint: "/setting/backupLocally.php",
@@ -2935,9 +2935,9 @@ class Repositories {
   Future<void> restoreBackup(String filePath, {Function(String)? onProgress}) async {
     try {
       final host = 'localhost';
-      final port = '3306'; // Laragon uses 3306 by default too
+      final port = '3306';
       final username = 'root';
-      final database = 'autoparts';
+      final database = 'zaitoondb';
 
       // Laragon's default MySQL password is blank (same as XAMPP)
       // If you set a password in Laragon, add: -p, 'your_password'
@@ -3067,13 +3067,27 @@ class Repositories {
     }
   }
 
-  Future<List<FileSystemEntity>> getBackupFiles() async {
-    final baseDir = await _getBackupBaseDirectory();
-    final backupDir = Directory('${baseDir.path}/ZaitoonBackups');
-    if (!await backupDir.exists()) return [];
-    final files = backupDir.listSync().whereType<File>().toList();
-    files.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
-    return files;
+  Future<List<FileSystemEntity>> getBackupFiles({int? limit = 10}) async {
+    try {
+      final baseDir = await _getBackupBaseDirectory();
+      final backupDir = Directory('${baseDir.path}/ZaitoonBackups');
+
+      if (!await backupDir.exists()) return [];
+
+      final files = backupDir.listSync().whereType<File>().toList();
+
+      // Sort by modification time (most recent first)
+      files.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+
+      // Return only the top 'limit' files
+      if (limit != null && limit > 0) {
+        return files.take(limit).toList();
+      }
+
+      return files; // Return all if limit is null or 0
+    } catch (e) {
+      throw Exception('Failed to load backups: $e');
+    }
   }
 
   ///Attendance ...............................................................

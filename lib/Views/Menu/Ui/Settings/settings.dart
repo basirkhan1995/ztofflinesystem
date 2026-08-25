@@ -147,7 +147,6 @@ class _Desktop extends StatelessWidget {
             selectedColor: Theme.of(context).colorScheme.primary,
             unselectedTextColor: Theme.of(context).colorScheme.secondary,
             selectedTextColor: Theme.of(context).colorScheme.surface,
-
           );
         },
       ),

@@ -3,11 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
+import 'package:zaitoonpro/Features/Other/z_dialog.dart';
 import 'package:zaitoonpro/Features/Widgets/button.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Views/Auth/ForgotPassword/forgot_password.dart';
 import 'package:zaitoonpro/Views/Auth/Subscription/Ui/no_subscription.dart';
 import 'package:zaitoonpro/Views/Auth/Ui/force_change_password.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Backup/backup.dart';
 import 'package:zaitoonpro/Views/Menu/home.dart';
 import '../../../Features/Widgets/textfield_entitled.dart';
 import '../../../Localizations/l10n/translations/app_localizations.dart';
@@ -648,7 +651,22 @@ class _DesktopState extends State<_Desktop> {
         // Header - Localization & Theme Selector
         Row(
           spacing: 5,
-          children: [ThemeSelector(width: 150), LanguageSelector(width: 150)],
+          children: [ThemeSelector(width: 150), LanguageSelector(width: 150),
+            ZOutlineButton(
+              isActive: true,
+              onPressed: (){
+                showDialog(context: context, builder: (context)=> ZFormDialog(
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                    width: MediaQuery.of(context).size.width *.45,
+                    onAction: null,
+                    isActionTrue: false,
+                    icon: Icons.storage_rounded,
+                    title: AppLocalizations.of(context)!.backup,
+                    child: BackupView(),
+                ));
+              },
+              icon:Icons.storage_rounded,
+              label: Text("مدیریت پشتیبانی"))],
         ),
       ],
     );
@@ -661,19 +679,6 @@ class _DesktopState extends State<_Desktop> {
 
     return Row(
       children: [
-        /// ================= LEFT SIDE (IMAGE) =================
-        Expanded(
-          flex: 4,
-          child: SizedBox(
-            child: Opacity(
-              opacity: 0.9,
-              child: Image.asset(
-                "assets/images/bg.png",
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ),
 
         /// ================= RIGHT SIDE (LOGIN) =================
         Expanded(
@@ -684,7 +689,6 @@ class _DesktopState extends State<_Desktop> {
               padding: const EdgeInsets.all(25),
               margin: const EdgeInsets.symmetric(horizontal: 40),
 
-              /// ❌ NO SHADOW
               /// ✅ USE BORDER + SOFT SURFACE
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
@@ -796,7 +800,14 @@ class _DesktopState extends State<_Desktop> {
                         onPressed: () async {
                           final result = await showDialog(
                             context: context,
-                            builder: (context) => const ServerConnectDialog(),
+                            builder: (context) => ZFormDialog(
+                              padding: EdgeInsets.all(15),
+                                onAction: null,
+                                icon: Icons.network_check,
+                                title: "اتصال شبکه",
+                                isActionTrue: false,
+                                child: ServerConnectDialog(),
+                            ),
                           );
 
                           if (result == true) {
@@ -813,6 +824,22 @@ class _DesktopState extends State<_Desktop> {
             ),
           ),
         ),
+
+        /// ================= LEFT SIDE (IMAGE) =================
+        Expanded(
+          flex: 4,
+          child: SizedBox(
+            child: Opacity(
+              opacity: 0.9,
+              child: Image.asset(
+                "assets/images/bg.png",
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+
+
       ],
     );
   }

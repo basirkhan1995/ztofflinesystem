@@ -75,7 +75,7 @@ class ZTabContainer<T> extends StatefulWidget {
     this.margin = const EdgeInsets.symmetric(horizontal: 0),
     this.tabBarPadding = const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
     this.tabAlignment = MainAxisAlignment.start,
-    this.tabContainerColor = const Color(0xFFF5F5F5),
+    this.tabContainerColor,
   });
 
   @override

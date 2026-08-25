@@ -13,12 +13,12 @@ import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/p
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/bloc/sale_invoice_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/new_sale.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/Ui/status_method.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/bloc/orders_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/search_field.dart';
-import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../model/orders_model.dart';
@@ -1033,7 +1033,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                           tr.totalInvoice,style: titleStyle),
                     ),
                   ),
-                    SizedBox(width: 115, child: Text(tr.status,style: titleStyle)),
+                    SizedBox(width: 60, child: Text(tr.status,style: titleStyle)),
                 ]
               ),
             ),
@@ -1085,7 +1085,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                         children: [
                           CircularProgressIndicator(),
                           SizedBox(height: 16),
-                          Text('Updating order status...'),
+                          Text('در حال بروزرسانی...'),
                         ],
                       ),
                     );
@@ -1163,7 +1163,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                             children: [
 
                               Text(
-                                '${_selectedOrderIds.length} of ${filteredList.length} selected',
+                                '${_selectedOrderIds.length} از ${filteredList.length} انتخاب شده ',
 
                                 style: TextStyle(
                                   color: color.primary,
@@ -1234,6 +1234,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                             );
                             return InkWell(
                               onTap: () {
+                                print(ord.ordStatus);
                                 if (_isSelectionMode) {
                                   _toggleSelection(
                                       ord.ordId!
@@ -1546,9 +1547,8 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
 
                                     // STATUS
                                     SizedBox(
-                                      width: 115,
-
-                                      child: TransactionStatusBadge(
+                                      width: 60,
+                                      child: StatusIcon(
                                         status: ord.ordStatus ?? "",
                                       ),
                                     ),
