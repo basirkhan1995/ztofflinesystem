@@ -1699,7 +1699,7 @@ class InvoicePrintService extends PrintServices {
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: item.unitPrice.toAmount(decimal: 4),
+          text: item.unitPrice.toAmount(decimal: 2),
           fontSize: 10,
           textAlign: pw.TextAlign.center,
         ),
@@ -1767,7 +1767,7 @@ class InvoicePrintService extends PrintServices {
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: item.unitPrice.toAmount(decimal: 4),
+          text: item.unitPrice.toAmount(decimal: 2),
           fontSize: 10,
           textAlign: pw.TextAlign.center,
         ),

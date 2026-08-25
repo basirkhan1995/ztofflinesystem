@@ -268,13 +268,6 @@ class _BaseProCatAddEditState extends State<_BaseProCatAddEdit> {
                                 controller: description,
                                 keyboardInputType: TextInputType.multiline,
                                 maxLength: 100,
-                                isRequired: true,
-                                validator: (value) {
-                                  if (value.isEmpty) {
-                                    return tr.required(tr.details);
-                                  }
-                                  return null;
-                                },
                               ),
                             ),
 
@@ -541,12 +534,6 @@ class _BaseProCatAddEditState extends State<_BaseProCatAddEdit> {
                     controller: description,
                     keyboardInputType: TextInputType.multiline,
                     maxLength: 100,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return tr.required(tr.details);
-                      }
-                      return null;
-                    },
                   ),
                   if (isEdit) const SizedBox(height: 12),
                   if (isEdit)
