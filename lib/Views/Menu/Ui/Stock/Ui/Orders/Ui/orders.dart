@@ -1234,7 +1234,6 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                             );
                             return InkWell(
                               onTap: () {
-                                print(ord.ordStatus);
                                 if (_isSelectionMode) {
                                   _toggleSelection(
                                       ord.ordId!
