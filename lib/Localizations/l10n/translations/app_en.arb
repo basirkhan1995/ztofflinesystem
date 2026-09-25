@@ -1163,5 +1163,12 @@
   "noServerFoundMessage": "Could not find any server. Please check if the server is running and try again.",
   "disconnectedTitle": "Disconnected",
   "connectedToLocal": "Connected to Localhost.",
-  "stockTitle": "Stock"
+  "stockTitle": "Stock",
+  "insertedTitle": "Inserted",
+  "skippedTitle": "Skipped",
+  "erroredTitle": "Errors",
+  "importComplete": "Import Complete",
+  "xlError": "Import finished with some skipped rows.",
+  "xlError2": "Import finished with some issues",
+  "xlSuccess": "All products imported successfully"
 }

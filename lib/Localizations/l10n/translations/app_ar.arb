@@ -1163,5 +1163,12 @@
   "noServerFoundMessage": "هیڅ سرور ونه موندل شو. مهرباني وکړئ وګورئ چې سرور فعال دی او بیا هڅه وکړئ.",
   "disconnectedTitle": "قطع ارتباط",
   "connectedToLocal": "اتصال به سرور محلی",
-  "stockTitle": "موجودی"
+  "stockTitle": "موجودی",
+  "insertedTitle": "وارد شده",
+  "skippedTitle": "لغو شده",
+  "erroredTitle": "خطا ها",
+  "importComplete": "عملیات موفق",
+  "xlError": "ایمپورټ د ځینو پریښودل شوو کرښو سره پای ته ورسید",
+  "xlError2": "ایمپورټ د ځینو ستونزو سره ترسره شو",
+  "xlSuccess": "تمام کالا ها موفقانه ثبت شد"
 }

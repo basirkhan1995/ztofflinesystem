@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
@@ -424,12 +423,25 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Wrap(
+                                      Row(
                                         children: [
-                                          Icon(Icons.shopify_rounded),
-                                          Text(tr.products,style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.bold
-                                          )),
+                                          InkWell(
+                                            onTap: (){
+                                              _removeOverlay();
+                                            },
+                                            child: Icon(
+                                                Icons.clear
+                                            ),
+                                          ),
+                                          SizedBox(width: 5),
+                                          Wrap(
+                                            children: [
+                                              Icon(Icons.shopify_rounded),
+                                              Text(tr.products,style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                                  fontWeight: FontWeight.bold
+                                              )),
+                                            ],
+                                          ),
                                         ],
                                       ),
 
@@ -437,6 +449,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
                                         spacing: 5,
                                         children: [
                                           ZOutlineButton(
+                                            isActive: true,
                                             label: Text(tr.addNewProduct),
                                             icon: Icons.add,
                                             onPressed: (){
@@ -447,15 +460,6 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
                                               );
                                             },
                                           ),
-                                          ZOutlineButton(
-                                            label: Text(tr.closeTitle),
-                                             icon: Icons.close,
-                                            isActive: true,
-                                            backgroundHover: Theme.of(context).colorScheme.error,
-                                            onPressed: (){
-                                              _removeOverlay();
-                                            },
-                                          )
                                         ],
                                       )
                                     ],
@@ -565,12 +569,12 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
                                             style: titleStyle),
                                       ),
                                       if(visibility.isWholeSale)
-                                      SizedBox(
-                                        width: 100,
-                                        child: Text(tr.totalItems,
-                                            textAlign: TextAlign.end,
-                                            style: titleStyle),
-                                      ),
+                                        SizedBox(
+                                          width: 100,
+                                          child: Text(tr.totalItems,
+                                              textAlign: TextAlign.end,
+                                              style: titleStyle),
+                                        ),
                                     ],
                                   ),
                                 ),
@@ -609,14 +613,14 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
                                         SizedBox(height: 10),
 
                                         ZOutlineButton(
-                                            label: Text(tr.addNewProduct),
-                                            onPressed: (){
-                                              _removeOverlay();
-                                              showDialog(
-                                                context: context,
-                                                builder: (context) => AddEditProductView(),
-                                              );
-                                            },
+                                          label: Text(tr.addNewProduct),
+                                          onPressed: (){
+                                            _removeOverlay();
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AddEditProductView(),
+                                            );
+                                          },
                                         )
                                       ],
                                     ),
@@ -727,7 +731,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
             flex: 3,
             child: Text(
               product.proName ?? '',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -737,7 +741,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
             child: Text(
               product.proBrand ?? 'N/A',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 15),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -746,7 +750,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
             child: Text(
               product.proGrade ?? 'N/A',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 15),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -755,7 +759,7 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
             child: Text(
               product.proUnit ?? 'N/A',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 15),
             ),
           ),
 
@@ -764,20 +768,20 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
             child: Text(
               product.totalQty ?? 'N/A',
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           if(visibility.isWholeSale)
-          SizedBox(
-            width: 100,
-            child: Text(
-              product.totalItems ?? 'N/A',
-              textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
+            SizedBox(
+              width: 100,
+              child: Text(
+                product.totalItems ?? 'N/A',
+                textAlign: TextAlign.end,
+                style: const TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -854,16 +858,16 @@ class _ProductsSearchFieldState extends State<ProductsSearchField> {
   Widget _buildDetailCard(String title, List<Widget> children) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: .05),
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey.withValues(alpha: .02),
+        borderRadius: BorderRadius.circular(5),
         border: Border.all(color: Colors.grey.withValues(alpha: .2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ZCover(radius: 3, padding: EdgeInsets.symmetric(horizontal: 3), child: SectionTitle(title: title)),
+          SectionTitle(title: title),
           const SizedBox(height: 5),
           ...children,
         ],

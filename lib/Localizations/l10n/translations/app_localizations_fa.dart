@@ -3512,4 +3512,25 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get stockTitle => 'موجودی';
+
+  @override
+  String get insertedTitle => 'وارد شده';
+
+  @override
+  String get skippedTitle => 'لغو شده';
+
+  @override
+  String get erroredTitle => 'خطا ها';
+
+  @override
+  String get importComplete => 'عملیات موفق';
+
+  @override
+  String get xlError => 'ایمپورت با چند سطر رد شده انجام شد';
+
+  @override
+  String get xlError2 => 'ایمپورت با چند مشکل انجام شد.';
+
+  @override
+  String get xlSuccess => 'تمام کالا ها موفقانه ثبت شد';
 }

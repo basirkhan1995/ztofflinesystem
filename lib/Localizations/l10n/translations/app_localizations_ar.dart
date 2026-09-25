@@ -3516,4 +3516,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stockTitle => 'موجودی';
+
+  @override
+  String get insertedTitle => 'وارد شده';
+
+  @override
+  String get skippedTitle => 'لغو شده';
+
+  @override
+  String get erroredTitle => 'خطا ها';
+
+  @override
+  String get importComplete => 'عملیات موفق';
+
+  @override
+  String get xlError => 'ایمپورټ د ځینو پریښودل شوو کرښو سره پای ته ورسید';
+
+  @override
+  String get xlError2 => 'ایمپورټ د ځینو ستونزو سره ترسره شو';
+
+  @override
+  String get xlSuccess => 'تمام کالا ها موفقانه ثبت شد';
 }

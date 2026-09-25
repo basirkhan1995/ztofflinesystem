@@ -3523,4 +3523,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockTitle => 'Stock';
+
+  @override
+  String get insertedTitle => 'Inserted';
+
+  @override
+  String get skippedTitle => 'Skipped';
+
+  @override
+  String get erroredTitle => 'Errors';
+
+  @override
+  String get importComplete => 'Import Complete';
+
+  @override
+  String get xlError => 'Import finished with some skipped rows.';
+
+  @override
+  String get xlError2 => 'Import finished with some issues';
+
+  @override
+  String get xlSuccess => 'All products imported successfully';
 }

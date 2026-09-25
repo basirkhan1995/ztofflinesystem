@@ -1296,6 +1296,21 @@ class Repositories {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> addProductFromExcel({required File excelFile}) async {
+    final fileName = excelFile.path.split(Platform.pathSeparator).last;
+    final formData = FormData.fromMap({
+      'excelFile': await MultipartFile.fromFile(
+        excelFile.path,
+        filename: fileName,
+      ),
+    });
+    final response = await api.uploadFile(
+      endpoint: "/inventory/addProductExcel.php",
+      data: formData,
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> updateProduct({required ProductsModel newProduct}) async {
     final response = await api.put(
       endpoint: "/inventory/product.php",
@@ -1312,12 +1327,17 @@ class Repositories {
     return response.data;
   }
 
-  Future<List<ProductsModel>> getProduct({
-    int? proId,
-    String? input,
-    CancelToken? cancelToken,
-  }) async {
-    final queryParams = {'proID': proId, 'input':input};
+  Future<List<ProductsModel>> getProduct({int? proId, String? input, CancelToken? cancelToken}) async {
+    final queryParams = <String, dynamic>{};
+
+    // Only add non-null parameters
+    if (proId != null) {
+      queryParams['proID'] = proId;
+    }
+    if (input != null && input.isNotEmpty) {
+      queryParams['input'] = input;
+    }
+
     final response = await api.get(
       endpoint: "/inventory/product.php",
       queryParams: queryParams,
@@ -1351,10 +1371,7 @@ class Repositories {
     return [];
   }
 
-  Future<ProductsModel> getProductById({
-    required int proId,
-    CancelToken? cancelToken,
-  }) async {
+  Future<ProductsModel> getProductById({required int proId, CancelToken? cancelToken}) async {
     final queryParams = {'proID': proId};
     final response = await api.get(
       endpoint: "/inventory/product.php",

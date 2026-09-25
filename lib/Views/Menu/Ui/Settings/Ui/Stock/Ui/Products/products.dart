@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
@@ -42,6 +44,7 @@ class _BaseProductsView extends StatefulWidget {
 
 class _BaseProductsViewState extends State<_BaseProductsView> {
   final searchController = TextEditingController();
+  bool _isUploadingExcel = false;
 
   @override
   void initState() {
@@ -63,11 +66,302 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
     context.read<ProductsBloc>().add(LoadProductsEvent());
   }
 
-  // Build header for different screen sizes
-  Widget _buildHeader(AppLocalizations tr, TextTheme textTheme, ColorScheme color) {
+  // ─────────────────────────────────────────────────────────────
+  //  EXCEL UPLOAD
+  // ─────────────────────────────────────────────────────────────
+  Future<void> _pickAndUploadExcel() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls'],
+    );
 
+    if (result == null || result.files.single.path == null) return;
+
+    final file = File(result.files.single.path!);
+
+    if (!mounted) return;
+
+    setState(() => _isUploadingExcel = true);
+    context.read<ProductsBloc>().add(AddProductsFromExcelEvent(file));
+  }
+
+  void _showExcelSummary(ProductsExcelUploadedState state) {
+    final tr = AppLocalizations.of(context)!;
+    final color = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final hasSkipped = state.skipped.isNotEmpty;
+    final hasErrors = state.errors.isNotEmpty;
+    final isPerfect = !hasSkipped && !hasErrors && state.inserted > 0;
+
+    // Success → green, issues → primary
+    final accentColor = isPerfect ? Colors.green.shade600 : color.primary;
+    final statusIcon =
+    isPerfect ? Icons.check_circle_outline : Icons.info_outline;
+    final statusText = isPerfect
+        ? AppLocalizations.of(context)!.xlSuccess
+        : hasErrors
+        ? AppLocalizations.of(context)!.xlError2
+        : AppLocalizations.of(context)!.xlError;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+        titlePadding: EdgeInsets.zero,
+        title: Column(
+          children: [
+            const SizedBox(height: 12),
+            // Status icon with soft background
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: .08),
+                shape: BoxShape.circle,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: .15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(statusIcon, color: accentColor, size: 30),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              tr.importComplete,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              statusText,
+              style: textTheme.bodySmall?.copyWith(
+                color: color.outline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 8),
+
+            // ── Compact stat row
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: color.surfaceContainerHighest.withValues(alpha: .35),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  _statItem(
+                    value: state.inserted,
+                    label: tr.insertedTitle,
+                    color: Colors.green.shade600,
+                  ),
+                  _divider(color),
+                  _statItem(
+                    value: state.skipped.length,
+                    label: tr.skippedTitle,
+                    color: Colors.orange.shade700,
+                  ),
+                  _divider(color),
+                  _statItem(
+                    value: state.errors.length,
+                    label: tr.erroredTitle,
+                    color: color.error,
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Details list
+            if (hasSkipped || hasErrors) ...[
+              const SizedBox(height: 16),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 160),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.errorContainer.withValues(alpha: .25),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: color.outline.withValues(alpha: .08),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (hasSkipped) ...[
+                        _sectionHeader(
+                          icon: Icons.skip_next_rounded,
+                          title: tr.skippedTitle,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(height: 6),
+                        ...state.skipped.map(
+                              (s) => _detailRow(
+                            "Row ${s['row']}",
+                            s['reason'].toString(),
+                            textTheme,
+                            color,
+                          ),
+                        ),
+                      ],
+                      if (hasSkipped && hasErrors) const SizedBox(height: 12),
+                      if (hasErrors) ...[
+                        _sectionHeader(
+                          icon: Icons.error_outline_rounded,
+                          title: tr.erroredTitle,
+                          color: color.error,
+                        ),
+                        const SizedBox(height: 6),
+                        ...state.errors.map(
+                              (e) => _detailRow(
+                            "Row ${e['row']}",
+                            e['error'].toString(),
+                            textTheme,
+                            color,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ZOutlineButton(
+              isActive: true,
+              onPressed: () {
+                Navigator.of(dialogCtx).pop();
+                context.read<ProductsBloc>().add(const LoadProductsEvent());
+              },
+              label: Text(
+                tr.doneTitle,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// ─────────────────────────────────────────────────────────────
+//  Small helpers
+// ─────────────────────────────────────────────────────────────
+
+  Widget _statItem({
+    required int value,
+    required String label,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value.toString(),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider(ColorScheme color) {
+    return Container(
+      width: 1,
+      height: 32,
+      color: color.outline.withValues(alpha: .15),
+    );
+  }
+
+  Widget _sectionHeader({
+    required IconData icon,
+    required String title,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: color),
+        const SizedBox(width: 6),
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: color,
+            fontSize: 12.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _detailRow(
+      String rowLabel,
+      String message,
+      TextTheme textTheme,
+      ColorScheme color,
+      ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4, left: 4),
+      child: RichText(
+        text: TextSpan(
+          style: textTheme.bodySmall?.copyWith(
+            color: color.onSurface,
+            fontSize: 12,
+          ),
+          children: [
+            TextSpan(
+              text: "$rowLabel: ",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            TextSpan(text: message),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  //  HEADER
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildHeader(
+      AppLocalizations tr, TextTheme textTheme, ColorScheme color) {
     if (widget.isMobile) {
-      // Mobile header - stacked layout
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -93,8 +387,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     searchController.clear();
                   });
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
                   child: Icon(Icons.clear, size: 15),
                 ),
               )
@@ -114,13 +408,27 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     label: Text(tr.refresh),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 2),
+                Expanded(
+                  child: ZOutlineButton(
+                    isActive: true,
+                    icon: _isUploadingExcel
+                        ? Icons.hourglass_top
+                        : Icons.upload_file,
+                    onPressed:
+                    _isUploadingExcel ? null : _pickAndUploadExcel,
+                    label: const Text("Excel"),
+                  ),
+                ),
+                const SizedBox(width: 2),
                 Expanded(
                   child: ZOutlineButton(
                     isActive: true,
                     icon: Icons.add,
                     onPressed: () {
-                      context.read<SingleProductBloc>().add(ClearSingleProductEvent());
+                      context
+                          .read<SingleProductBloc>()
+                          .add(ClearSingleProductEvent());
                       showDialog(
                         context: context,
                         builder: (context) => const AddEditProductView(),
@@ -135,7 +443,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
         ),
       );
     } else if (widget.isTablet) {
-      // Tablet header - compact row layout
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -149,7 +456,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                       Text(tr.products, style: textTheme.headlineSmall),
                       Text(
                         tr.manageProductTitle,
-                        style: textTheme.bodySmall?.copyWith(color: color.outline),
+                        style: textTheme.bodySmall
+                            ?.copyWith(color: color.outline),
                       ),
                     ],
                   ),
@@ -160,13 +468,25 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   onPressed: onRefresh,
                   label: Text(tr.refresh),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 5),
+                ZOutlineButton(
+                  width: 100,
+                  isActive: true,
+                  icon: _isUploadingExcel
+                      ? Icons.hourglass_top
+                      : Icons.upload_file,
+                  onPressed: _isUploadingExcel ? null : _pickAndUploadExcel,
+                  label: const Text("Excel"),
+                ),
+                const SizedBox(width: 5),
                 ZOutlineButton(
                   width: 100,
                   isActive: true,
                   icon: Icons.add,
                   onPressed: () {
-                    context.read<SingleProductBloc>().add(ClearSingleProductEvent());
+                    context
+                        .read<SingleProductBloc>()
+                        .add(ClearSingleProductEvent());
                     showDialog(
                       context: context,
                       builder: (context) => const AddEditProductView(),
@@ -191,8 +511,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     searchController.clear();
                   });
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
                   child: Icon(Icons.clear, size: 15),
                 ),
               )
@@ -219,7 +539,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
           ),
         ),
         child: Row(
-          spacing: 12,
+          spacing: 8,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
@@ -251,8 +571,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                       searchController.clear();
                     });
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Icon(Icons.clear, size: 15),
                   ),
                 )
@@ -272,9 +592,20 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             ZOutlineButton(
               width: 110,
               isActive: true,
+              icon: _isUploadingExcel
+                  ? Icons.hourglass_top
+                  : Icons.upload_file,
+              onPressed: _isUploadingExcel ? null : _pickAndUploadExcel,
+              label: const Text("Excel"),
+            ),
+            ZOutlineButton(
+              width: 110,
+              isActive: true,
               icon: Icons.add,
               onPressed: () {
-                context.read<SingleProductBloc>().add(ClearSingleProductEvent());
+                context
+                    .read<SingleProductBloc>()
+                    .add(ClearSingleProductEvent());
                 showDialog(
                   context: context,
                   builder: (context) => const AddEditProductView(),
@@ -288,8 +619,11 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
     }
   }
 
-  // Build table header for different screen sizes
-  Widget _buildTableHeader(AppLocalizations tr, TextStyle? titleStyle, ColorScheme color) {
+  // ─────────────────────────────────────────────────────────────
+  //  TABLE HEADER (unchanged)
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildTableHeader(
+      AppLocalizations tr, TextStyle? titleStyle, ColorScheme color) {
     final visibility = context.read<SettingsVisibleBloc>().state;
     if (widget.isMobile) {
       return const SizedBox.shrink();
@@ -323,7 +657,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
         ),
       );
     } else {
-      // Desktop header with better styling
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -399,18 +732,18 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 textAlign: TextAlign.center,
               ),
             ),
-            if(visibility.isWholeSale)
-            SizedBox(
-              width: 100,
-              child: Text(
-                tr.totalItems,
-                style: titleStyle?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: color.surface,
+            if (visibility.isWholeSale)
+              SizedBox(
+                width: 100,
+                child: Text(
+                  tr.totalItems,
+                  style: titleStyle?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: color.surface,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
             SizedBox(
               width: 80,
               child: Text(
@@ -439,11 +772,13 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
     }
   }
 
-  // Build product item based on screen size
-  Widget _buildProductItem(ProductsModel product, int index, TextTheme textTheme, ColorScheme color, AppLocalizations tr) {
+  // ─────────────────────────────────────────────────────────────
+  //  PRODUCT ITEM (unchanged)
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildProductItem(ProductsModel product, int index,
+      TextTheme textTheme, ColorScheme color, AppLocalizations tr) {
     final visibility = context.read<SettingsVisibleBloc>().state;
     if (widget.isMobile) {
-      // Mobile card view with better design
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         elevation: 2,
@@ -463,7 +798,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Row: Name + Status
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -485,26 +819,20 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   ],
                 ),
                 const SizedBox(height: 8),
-
-                // Code with label
                 Row(
                   children: [
-                    Icon(
-                      Icons.code,
-                      size: 14,
-                      color: color.outline,
-                    ),
+                    Icon(Icons.code, size: 14, color: color.outline),
                     const SizedBox(width: 4),
                     Text(
                       '${tr.productCode}:',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: color.outline,
-                      ),
+                      style:
+                      textTheme.bodySmall?.copyWith(color: color.outline),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: color.primary.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(4),
@@ -523,21 +851,14 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   ],
                 ),
                 const SizedBox(height: 6),
-
-                // Category
                 Row(
                   children: [
-                    Icon(
-                      Icons.category,
-                      size: 14,
-                      color: color.outline,
-                    ),
+                    Icon(Icons.category, size: 14, color: color.outline),
                     const SizedBox(width: 4),
                     Text(
                       '${tr.category}:',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: color.outline,
-                      ),
+                      style:
+                      textTheme.bodySmall?.copyWith(color: color.outline),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -550,14 +871,13 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     ),
                   ],
                 ),
-
-                // Stats Row: Qty, Items, Unit
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 12),
                         decoration: BoxDecoration(
                           color: color.primary.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(8),
@@ -566,9 +886,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                           children: [
                             Text(
                               tr.qty,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: color.outline,
-                              ),
+                              style: textTheme.bodySmall
+                                  ?.copyWith(color: color.outline),
                             ),
                             Text(
                               product.totalQty?.toAmount(decimal: 0) ?? '0',
@@ -584,7 +903,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 12),
                         decoration: BoxDecoration(
                           color: Colors.green.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(8),
@@ -593,9 +913,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                           children: [
                             Text(
                               tr.totalItems,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: color.outline,
-                              ),
+                              style: textTheme.bodySmall
+                                  ?.copyWith(color: color.outline),
                             ),
                             Text(
                               product.totalItems?.toAmount(decimal: 0) ?? '0',
@@ -611,7 +930,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 12),
                         decoration: BoxDecoration(
                           color: color.secondary.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(8),
@@ -620,9 +940,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                           children: [
                             Text(
                               tr.unit,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: color.outline,
-                              ),
+                              style: textTheme.bodySmall
+                                  ?.copyWith(color: color.outline),
                             ),
                             Text(
                               product.proUnit ?? '',
@@ -637,14 +956,14 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     ),
                   ],
                 ),
-
-                // Details if available
-                if (product.proDetails != null && product.proDetails!.isNotEmpty) ...[
+                if (product.proDetails != null &&
+                    product.proDetails!.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: color.surfaceContainerHighest.withValues(alpha: .3),
+                      color:
+                      color.surfaceContainerHighest.withValues(alpha: .3),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: color.outline.withValues(alpha: .1),
@@ -664,7 +983,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
         ),
       );
     } else if (widget.isTablet) {
-      // Tablet row view with better design
       return MouseRegion(
         cursor: SystemMouseCursors.click,
         child: InkWell(
@@ -700,7 +1018,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                       ),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: color.primary.withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(4),
@@ -732,7 +1051,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
         ),
       );
     } else {
-      // Desktop row view with better styling
       return MouseRegion(
         cursor: SystemMouseCursors.click,
         child: InkWell(
@@ -754,7 +1072,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             ),
             child: Row(
               children: [
-                // ID
                 SizedBox(
                   width: 50,
                   child: Text(
@@ -764,8 +1081,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     ),
                   ),
                 ),
-
-
                 SizedBox(
                   width: 130,
                   child: Text(
@@ -775,7 +1090,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     ),
                   ),
                 ),
-                // Product Name
                 Expanded(
                   flex: 2,
                   child: Text(
@@ -787,8 +1101,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-
-                // Category
                 SizedBox(
                   width: 120,
                   child: Text(
@@ -801,35 +1113,33 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-
-                // Quantity
                 SizedBox(
                   width: 100,
                   child: Text(
                     product.totalQty?.toAmount(decimal: 0) ?? '0',
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: product.totalItems.toString() == "0" ? color.error :  color.primary,
+                      color: product.totalItems.toString() == "0"
+                          ? color.error
+                          : color.primary,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-
-                // Total Items
-                if(visibility.isWholeSale)
-                SizedBox(
-                  width: 100,
-                  child: Text(
-                    product.totalItems?.toAmount(decimal: 0) ?? '0',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: product.totalItems.toString() == "0" ? color.error :  Colors.green.shade700,
+                if (visibility.isWholeSale)
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      product.totalItems?.toAmount(decimal: 0) ?? '0',
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: product.totalItems.toString() == "0"
+                            ? color.error
+                            : Colors.green.shade700,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-
-                // Unit
                 SizedBox(
                   width: 80,
                   child: Text(
@@ -838,8 +1148,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-
-                // Status
                 SizedBox(
                   width: 100,
                   child: Center(
@@ -871,16 +1179,13 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
       backgroundColor: color.surface,
       body: Column(
         children: [
-          // Header Section
           _buildHeader(tr, textTheme, color),
 
           if (!widget.isMobile) ...[
             const SizedBox(height: 4),
-            // Table Header
             _buildTableHeader(tr, titleStyle, color),
           ],
 
-          // Products List with BlocConsumer
           Expanded(
             child: BlocConsumer<ProductsBloc, ProductsState>(
               listener: (context, state) {
@@ -895,7 +1200,18 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   );
                 }
 
+                // ── Excel summary ─────────────────────────────
+                if (state is ProductsExcelUploadedState) {
+                  if (_isUploadingExcel) {
+                    setState(() => _isUploadingExcel = false);
+                  }
+                  _showExcelSummary(state);
+                }
+
                 if (state is ProductsErrorState) {
+                  if (_isUploadingExcel) {
+                    setState(() => _isUploadingExcel = false);
+                  }
                   ToastManager.show(
                     context: context,
                     title: "Error",
@@ -912,9 +1228,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(
-                          color: color.primary,
-                        ),
+                        CircularProgressIndicator(color: color.primary),
                         const SizedBox(height: 16),
                         Text(
                           tr.loading,
@@ -959,7 +1273,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
 
                   final filteredList = state.products.where((item) {
                     final code = item.proCode?.toLowerCase() ?? '';
-                    final productName = item.proName?.toString().toLowerCase() ?? '';
+                    final productName =
+                        item.proName?.toString().toLowerCase() ?? '';
                     final details = item.proDetails?.toLowerCase() ?? '';
                     final madeIn = item.proMadeIn?.toLowerCase() ?? '';
                     final category = item.pcName?.toLowerCase() ?? '';
@@ -983,14 +1298,16 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            searchController.text.isNotEmpty ? tr.noDataFound : tr.noDataFound,
+                            tr.noDataFound,
                             style: textTheme.titleMedium?.copyWith(
                               color: color.outline,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            searchController.text.isNotEmpty ? "Try different search" : "Try refreshing",
+                            searchController.text.isNotEmpty
+                                ? "Try different search"
+                                : "Try refreshing",
                             style: textTheme.bodySmall?.copyWith(
                               color: color.outline,
                             ),
@@ -1014,7 +1331,8 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     itemCount: filteredList.length,
                     itemBuilder: (context, index) {
                       final product = filteredList[index];
-                      return _buildProductItem(product, index, textTheme, color, tr);
+                      return _buildProductItem(
+                          product, index, textTheme, color, tr);
                     },
                   );
                 }
@@ -1028,7 +1346,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
   }
 }
 
-// Mobile View
 class _MobileProductsView extends StatelessWidget {
   const _MobileProductsView();
 
@@ -1041,7 +1358,6 @@ class _MobileProductsView extends StatelessWidget {
   }
 }
 
-// Tablet View
 class _TabletProductsView extends StatelessWidget {
   const _TabletProductsView();
 
@@ -1054,7 +1370,6 @@ class _TabletProductsView extends StatelessWidget {
   }
 }
 
-// Desktop View
 class _DesktopProductsView extends StatelessWidget {
   const _DesktopProductsView();
 

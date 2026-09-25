@@ -9,7 +9,6 @@ import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/add_rate.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/bloc/menu_bloc.dart';
 import '../../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../bloc/financial_tab_bloc.dart';
@@ -96,17 +95,17 @@ class _DesktopState extends State<_Desktop> {
                     label: Text(locale.refresh),
                     icon: Icons.refresh),
 
-                  SizedBox(width: 5),
-                  ZOutlineButton(
-                    isActive: true,
-                    icon: Icons.settings,
-                    onPressed: () {
-                      context.read<MenuBloc>().add(MenuOnChangedEvent(MenuName.finance));
-                      context.read<FinanceTabBloc>().add(FinanceOnChangedEvent(FinanceTabName.exchangeRate));
-                      context.read<CurrencyTabBloc>().add(CcyOnChangedEvent(CurrencyTabName.rates));
-                    },
-                    label: Text(locale.settings),
-                  ),
+                SizedBox(width: 5),
+                ZOutlineButton(
+                  isActive: true,
+                  icon: Icons.settings,
+                  onPressed: () {
+                    context.read<MenuBloc>().add(MenuOnChangedEvent(MenuName.finance));
+                    context.read<FinanceTabBloc>().add(FinanceOnChangedEvent(FinanceTabName.exchangeRate));
+                    context.read<CurrencyTabBloc>().add(CcyOnChangedEvent(CurrencyTabName.rates));
+                  },
+                  label: Text(locale.settings),
+                ),
               ],
             ),
           ),
@@ -307,11 +306,11 @@ class _DesktopState extends State<_Desktop> {
   }
 
   void onRefresh() {
-    final companyState = context.read<CompanyProfileBloc>().state;
-    if (companyState is CompanyProfileLoadedState) {
+    final auth = context.read<AuthBloc>().state;
+    if (auth is AuthenticatedState) {
       context.read<ExchangeRateBloc>().add(
         LoadExchangeRateEvent(
-         companyState.company.comLocalCcy ?? "",
+          auth.loginData.company?.comLocalCcy ?? "",
         ),
       );
     }
@@ -365,36 +364,36 @@ class _MobileState extends State<_Mobile> {
                       onPressed: onRefresh,
                       icon: Icon(Icons.refresh)),
                 ),
-                  SizedBox(width: 5),
-                  ZCover(
-                    padding: EdgeInsets.zero,
-                    child: IconButton(
-                      visualDensity: VisualDensity(horizontal: -4,vertical: -4),
-                      constraints: BoxConstraints(),
-                      icon: Icon(Icons.add),
-                      onPressed: () {
-                        showDialog(context: context, builder: (context){
-                          return AddRateView();
-                        });
-                      },
-                    ),
+                SizedBox(width: 5),
+                ZCover(
+                  padding: EdgeInsets.zero,
+                  child: IconButton(
+                    visualDensity: VisualDensity(horizontal: -4,vertical: -4),
+                    constraints: BoxConstraints(),
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      showDialog(context: context, builder: (context){
+                        return AddRateView();
+                      });
+                    },
                   ),
+                ),
 
-                  SizedBox(width: 5),
+                SizedBox(width: 5),
 
-                  ZCover(
-                    padding: EdgeInsets.zero,
-                    child: IconButton(
-                      visualDensity: VisualDensity(horizontal: -4,vertical: -4),
-                      constraints: BoxConstraints(),
-                      icon: Icon(Icons.settings),
-                      onPressed: () {
-                        context.read<MenuBloc>().add(MenuOnChangedEvent(MenuName.finance));
-                        context.read<FinanceTabBloc>().add(FinanceOnChangedEvent(FinanceTabName.exchangeRate));
-                        context.read<CurrencyTabBloc>().add(CcyOnChangedEvent(CurrencyTabName.rates));
-                      },
-                    ),
+                ZCover(
+                  padding: EdgeInsets.zero,
+                  child: IconButton(
+                    visualDensity: VisualDensity(horizontal: -4,vertical: -4),
+                    constraints: BoxConstraints(),
+                    icon: Icon(Icons.settings),
+                    onPressed: () {
+                      context.read<MenuBloc>().add(MenuOnChangedEvent(MenuName.finance));
+                      context.read<FinanceTabBloc>().add(FinanceOnChangedEvent(FinanceTabName.exchangeRate));
+                      context.read<CurrencyTabBloc>().add(CcyOnChangedEvent(CurrencyTabName.rates));
+                    },
                   ),
+                ),
               ],
             ),
           ),

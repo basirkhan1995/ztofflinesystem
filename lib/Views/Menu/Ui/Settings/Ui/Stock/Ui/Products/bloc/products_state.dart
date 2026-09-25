@@ -21,7 +21,20 @@ final class ProductsLoadedState extends ProductsState {
   @override
   List<Object> get props => [products];
 }
+class ProductsExcelUploadedState extends ProductsState {
+  final int inserted;
+  final List<dynamic> skipped;
+  final List<dynamic> errors;
 
+  const ProductsExcelUploadedState({
+    required this.inserted,
+    required this.skipped,
+    required this.errors,
+  });
+
+  @override
+  List<Object?> get props => [inserted, skipped, errors];
+}
 final class ProductsStockLoadedState extends ProductsState {
   final List<ProductsStockModel> products;
   const ProductsStockLoadedState(this.products);

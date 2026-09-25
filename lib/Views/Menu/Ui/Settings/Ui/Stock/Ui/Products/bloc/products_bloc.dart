@@ -13,7 +13,40 @@ part 'products_state.dart';
 class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   final Repositories _repo;
   ProductsBloc(this._repo) : super(ProductsInitial()) {
+    on<AddProductsFromExcelEvent>((event, emit) async {
+      emit(ProductsLoadingState());
+      try {
+        final response = await _repo.addProductFromExcel(
+          excelFile: event.excelFile,
+        );
+        final msg = response["msg"];
+        switch (msg) {
+          case "success":
+            final inserted = response["inserted"] as int? ?? 0;
+            final skipped  = (response["skipped"] as List?) ?? const [];
+            final errors   = (response["errors"]  as List?) ?? const [];
 
+            emit(ProductsExcelUploadedState(
+              inserted: inserted,
+              skipped: skipped,
+              errors: errors,
+            ));
+            return;
+
+          case "failed":
+            emit(ProductsErrorState(
+              response["error"]?.toString() ?? "Upload failed",
+            ));
+            return;
+
+          default:
+            emit(ProductsErrorState(msg?.toString() ?? "Unknown response"));
+            return;
+        }
+      } catch (e) {
+        emit(ProductsErrorState(e.toString()));
+      }
+    });
     ///Products for sale invoice
     on<LoadProductsStockEvent>((event, emit) async{
       emit(ProductsLoadingState());

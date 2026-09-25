@@ -107,11 +107,28 @@ class _DashboardAlertReminderState extends State<DashboardAlertReminder> {
 
                   /// EMPTY
                   if (state.reminders.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Text(
-                        AppLocalizations.of(context)!.noAlertReminders,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.notifications_off_outlined,
+                              size: 72,
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: .4),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              AppLocalizations.of(context)!.noAlertReminders,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
@@ -269,8 +286,8 @@ class _ReminderTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 onTap: () {
                   final updated = model.copyWith(
-                    rmdStatus: isPaid ? 0 : 1,
-                    usrName: usrName
+                      rmdStatus: isPaid ? 0 : 1,
+                      usrName: usrName
                   );
                   context.read<ReminderBloc>().add(UpdateReminderEvent(updated));
                 },

@@ -9,6 +9,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/exchange_rate.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/TotalDailyTxn/column_chart_view.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/TotalDailyTxn/total_daily_txn.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Backup/backup.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
 import '../Reminder/reminder_widget.dart';
 import '../Report/Ui/Finance/ExchangeRate/chart.dart';
@@ -178,7 +179,7 @@ class _Desktop extends StatelessWidget {
     if (authState is! AuthenticatedState) return const SizedBox();
     final String adminName = authState.loginData.usrFullName ?? "";
     final String usrRole = authState.loginData.usrRole ?? "";
-    
+
     final visibility = context.read<SettingsVisibleBloc>().state;
     final state = context.watch<AuthBloc>().state;
 
@@ -201,16 +202,16 @@ class _Desktop extends StatelessWidget {
 
                     Row(
                       children: [
-                       Column(
-                         crossAxisAlignment: CrossAxisAlignment.start,
-                         children: [
-                           Text(AppLocalizations.of(context)!.hello(adminName),style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold,fontSize: 22)),
-                           Text(usrRole)
-                         ],
-                       )
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(AppLocalizations.of(context)!.hello(adminName),style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold,fontSize: 22)),
+                            Text(usrRole)
+                          ],
+                        )
                       ],
                     ),
-                    
+
                     //Stats Count - Total Accounts, Total Stakeholders ...
                     if (login.hasPermission(2) ?? false) ...[
                       if (visibility.statsCount) ...[
@@ -243,11 +244,9 @@ class _Desktop extends StatelessWidget {
                       SizedBox(height: 400, child: FxRateDashboardChart()),
                     ],
 
-                      if (login.hasPermission(4) ?? false) ...[
-                        TotalDailyColumnView(),
-                      ],
-
-
+                    if (login.hasPermission(4) ?? false) ...[
+                      TotalDailyColumnView(),
+                    ],
 
                   ],
                 ),
@@ -263,18 +262,22 @@ class _Desktop extends StatelessWidget {
                         SizedBox(height: 3),
                       ],
                     ],
-
                     //Exchange Rate Widget
                     if (login.hasPermission(7) ?? false) ...[
                       if (visibility.exchangeRate) ...[
                         ExchangeRateDashboardView(),
                       ],
                     ],
-                    
+
                     //Reminder
                     if (login.hasPermission(9) ?? false) ...[
+                      SizedBox(height: 3),
                       DashboardAlertReminder(),
                     ],
+
+                    SizedBox(
+                        height: 1050,
+                        child: BackupView()),
                   ],
                 ),
               ),

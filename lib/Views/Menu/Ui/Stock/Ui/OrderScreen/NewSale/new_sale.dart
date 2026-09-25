@@ -363,7 +363,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       );
     }
 
-    @override
     final shortcuts = {
       const SingleActivator(LogicalKeyboardKey.f9): () => _onSalePrint(),
       const SingleActivator(LogicalKeyboardKey.f10): () => _onPrintStockPaper(),

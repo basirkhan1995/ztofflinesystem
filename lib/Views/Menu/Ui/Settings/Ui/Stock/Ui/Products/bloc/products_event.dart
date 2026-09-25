@@ -20,7 +20,13 @@ class LoadProductsStockEvent extends ProductsEvent{
   @override
   List<Object?> get props => [proId, noStock,input];
 }
+class AddProductsFromExcelEvent extends ProductsEvent {
+  final File excelFile;
+  const AddProductsFromExcelEvent(this.excelFile);
 
+  @override
+  List<Object?> get props => [excelFile];
+}
 class AddProductEvent extends ProductsEvent{
   final ProductsModel newProduct;
   const AddProductEvent(this.newProduct);

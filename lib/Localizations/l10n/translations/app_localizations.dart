@@ -6963,6 +6963,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stock'**
   String get stockTitle;
+
+  /// No description provided for @insertedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inserted'**
+  String get insertedTitle;
+
+  /// No description provided for @skippedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get skippedTitle;
+
+  /// No description provided for @erroredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors'**
+  String get erroredTitle;
+
+  /// No description provided for @importComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Complete'**
+  String get importComplete;
+
+  /// No description provided for @xlError.
+  ///
+  /// In en, this message translates to:
+  /// **'Import finished with some skipped rows.'**
+  String get xlError;
+
+  /// No description provided for @xlError2.
+  ///
+  /// In en, this message translates to:
+  /// **'Import finished with some issues'**
+  String get xlError2;
+
+  /// No description provided for @xlSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'All products imported successfully'**
+  String get xlSuccess;
 }
 
 class _AppLocalizationsDelegate
