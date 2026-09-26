@@ -1415,7 +1415,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get glTypes => 'گتگوری تراکنش';
 
   @override
-  String get productName => 'محصول نوم';
+  String get productName => 'کالا نوم';
 
   @override
   String get productCode => 'محصول کد';
@@ -3537,4 +3537,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get xlSuccess => 'تمام کالا ها موفقانه ثبت شد';
+
+  @override
+  String get excelTitle => 'اکسل';
+
+  @override
+  String get newProduct => 'نوی کالا';
 }

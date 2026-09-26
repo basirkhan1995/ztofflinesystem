@@ -1170,5 +1170,7 @@
   "importComplete": "Import Complete",
   "xlError": "Import finished with some skipped rows.",
   "xlError2": "Import finished with some issues",
-  "xlSuccess": "All products imported successfully"
+  "xlSuccess": "All products imported successfully",
+  "excelTitle": "Excel",
+  "newProduct": "New Product"
 }

@@ -11,6 +11,7 @@ class ZOutlineButton extends StatefulWidget {
   final Color? foregroundHover;
   final Color? textColor;
   final IconData? icon;
+  final Widget? leading;          // ← NEW: custom leading widget (e.g. FaIcon, SvgPicture)
   final double? iconSize;
   final bool isActive;
   final bool disable;
@@ -27,6 +28,7 @@ class ZOutlineButton extends StatefulWidget {
     this.iconSize,
     this.width,
     this.icon,
+    this.leading,                 // ← NEW
     this.backgroundColor,
     this.height,
     this.isActive = false,
@@ -64,6 +66,12 @@ class ZOutlineButtonState extends State<ZOutlineButton> {
         : widget.textColor ??
         theme.colorScheme.primary.withValues(alpha: .9));
 
+    // Prefer `leading` widget over `icon`
+    final Widget? leadingWidget = widget.leading ??
+        (widget.icon != null
+            ? Icon(widget.icon, color: textColor, size: widget.iconSize)
+            : null);
+
     Widget button = OutlinedButton(
       style: ButtonStyle(
         padding: WidgetStateProperty.all(
@@ -86,19 +94,18 @@ class ZOutlineButtonState extends State<ZOutlineButton> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (widget.icon != null)
-            Icon(widget.icon, color: textColor, size: widget.iconSize),
-            if (widget.icon != null && widget.label !=null) const SizedBox(width: 5),
+            ?leadingWidget,
+            if (leadingWidget != null && widget.label != null)
+              const SizedBox(width: 5),
             DefaultTextStyle.merge(
               style: TextStyle(color: textColor),
-              child: widget.label ?? SizedBox(),
+              child: widget.label ?? const SizedBox(),
             ),
           ],
         ),
       ),
     );
 
-    // Apply fixed width ONLY if provided
     if (widget.width != null) {
       button = SizedBox(
         width: widget.width,

@@ -7005,6 +7005,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All products imported successfully'**
   String get xlSuccess;
+
+  /// No description provided for @excelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel'**
+  String get excelTitle;
+
+  /// No description provided for @newProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'New Product'**
+  String get newProduct;
 }
 
 class _AppLocalizationsDelegate

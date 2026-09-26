@@ -3544,4 +3544,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get xlSuccess => 'All products imported successfully';
+
+  @override
+  String get excelTitle => 'Excel';
+
+  @override
+  String get newProduct => 'New Product';
 }

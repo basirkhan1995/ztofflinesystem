@@ -331,7 +331,7 @@ class _BackupContent extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary.withAlpha(10),
               padding: EdgeInsets.all(7),
               radius: 5,
-              child: Icon(Icons.storage_rounded, color: Theme.of(context).colorScheme.primary)),
+              child: Icon(Icons.table_rows_rounded, color: Theme.of(context).colorScheme.primary)),
           hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
           contentPadding: const EdgeInsets.symmetric(horizontal: 8),
           title: Text(

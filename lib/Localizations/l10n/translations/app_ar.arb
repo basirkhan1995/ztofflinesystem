@@ -478,7 +478,7 @@
   "accountExist": "حساب به این نام از قبل موجود است",
   "glDependentMsg": "این حساب قابل حذف نیست",
   "glTypes": "گتگوری تراکنش",
-  "productName": "محصول نوم",
+  "productName": "کالا نوم",
   "productCode": "محصول کد",
   "transactionType": "نوع معاملات",
   "deactive": "غیرفعال",
@@ -1170,5 +1170,7 @@
   "importComplete": "عملیات موفق",
   "xlError": "ایمپورټ د ځینو پریښودل شوو کرښو سره پای ته ورسید",
   "xlError2": "ایمپورټ د ځینو ستونزو سره ترسره شو",
-  "xlSuccess": "تمام کالا ها موفقانه ثبت شد"
+  "xlSuccess": "تمام کالا ها موفقانه ثبت شد",
+  "excelTitle": "اکسل",
+  "newProduct": "نوی کالا"
 }

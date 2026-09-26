@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
@@ -370,7 +371,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             Text(tr.products, style: textTheme.headlineSmall),
             Text(
               tr.manageProductTitle,
-              style: textTheme.bodySmall?.copyWith(color: color.outline),
+              style: textTheme.bodyMedium?.copyWith(color: color.outline),
             ),
             const SizedBox(height: 16),
             ZSearchField(
@@ -417,24 +418,22 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                         : Icons.upload_file,
                     onPressed:
                     _isUploadingExcel ? null : _pickAndUploadExcel,
-                    label: const Text("Excel"),
+                    label: Text(tr.excelTitle),
                   ),
                 ),
                 const SizedBox(width: 2),
                 Expanded(
                   child: ZOutlineButton(
                     isActive: true,
-                    icon: Icons.add,
+                    icon: Icons.add_shopping_cart_rounded,
                     onPressed: () {
-                      context
-                          .read<SingleProductBloc>()
-                          .add(ClearSingleProductEvent());
+                      context.read<SingleProductBloc>().add(ClearSingleProductEvent());
                       showDialog(
                         context: context,
                         builder: (context) => const AddEditProductView(),
                       );
                     },
-                    label: Text(tr.newKeyword),
+                    label: Text(tr.newProduct),
                   ),
                 ),
               ],
@@ -456,7 +455,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                       Text(tr.products, style: textTheme.headlineSmall),
                       Text(
                         tr.manageProductTitle,
-                        style: textTheme.bodySmall
+                        style: textTheme.bodyMedium
                             ?.copyWith(color: color.outline),
                       ),
                     ],
@@ -476,13 +475,13 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                       ? Icons.hourglass_top
                       : Icons.upload_file,
                   onPressed: _isUploadingExcel ? null : _pickAndUploadExcel,
-                  label: const Text("Excel"),
+                  label: Text(tr.excelTitle),
                 ),
                 const SizedBox(width: 5),
                 ZOutlineButton(
                   width: 100,
                   isActive: true,
-                  icon: Icons.add,
+                  icon: Icons.add_shopping_cart_rounded,
                   onPressed: () {
                     context
                         .read<SingleProductBloc>()
@@ -492,7 +491,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                       builder: (context) => const AddEditProductView(),
                     );
                   },
-                  label: Text(tr.newKeyword),
+                  label: Text(tr.newProduct),
                 ),
               ],
             ),
@@ -550,7 +549,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   Text(tr.products, style: textTheme.headlineMedium),
                   Text(
                     tr.manageProductTitle,
-                    style: textTheme.bodySmall?.copyWith(color: color.outline),
+                    style: textTheme.bodyMedium?.copyWith(color: color.outline),
                   ),
                 ],
               ),
@@ -592,16 +591,21 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             ZOutlineButton(
               width: 110,
               isActive: true,
-              icon: _isUploadingExcel
-                  ? Icons.hourglass_top
-                  : Icons.upload_file,
+              leading: _isUploadingExcel
+                  ? const Icon(Icons.hourglass_top, size: 18, color: Colors.white)
+                  : const FaIcon(
+                FontAwesomeIcons.fileExcel,
+                size: 18,
+                color: Colors.white,
+              ),
+              backgroundHover: Colors.green,
               onPressed: _isUploadingExcel ? null : _pickAndUploadExcel,
-              label: const Text("Excel"),
+              label: Text(tr.excelTitle),
             ),
             ZOutlineButton(
               width: 110,
               isActive: true,
-              icon: Icons.add,
+              icon: Icons.add_shopping_cart_rounded,
               onPressed: () {
                 context
                     .read<SingleProductBloc>()
@@ -611,7 +615,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   builder: (context) => const AddEditProductView(),
                 );
               },
-              label: Text(tr.newKeyword),
+              label: Text(tr.newProduct),
             ),
           ],
         ),
@@ -690,16 +694,16 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 130,
-              child: Text(
-                tr.productCode,
-                style: titleStyle?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: color.surface,
-                ),
-              ),
-            ),
+            // SizedBox(
+            //   width: 130,
+            //   child: Text(
+            //     tr.productCode,
+            //     style: titleStyle?.copyWith(
+            //       fontWeight: FontWeight.w600,
+            //       color: color.surface,
+            //     ),
+            //   ),
+            // ),
             Expanded(
               flex: 2,
               child: Text(
@@ -1081,15 +1085,15 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: 130,
-                  child: Text(
-                    product.proCode.toString(),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: color.outline,
-                    ),
-                  ),
-                ),
+                // SizedBox(
+                //   width: 130,
+                //   child: Text(
+                //     product.proCode.toString(),
+                //     style: textTheme.bodySmall?.copyWith(
+                //       color: color.outline,
+                //     ),
+                //   ),
+                // ),
                 Expanded(
                   flex: 2,
                   child: Text(
