@@ -1148,7 +1148,7 @@
   "otherDetails": "Other details",
   "itemsCount": "Items Count",
   "applyDiscount": "Apply as discount",
-  "connectedTo": "Connected to local host.",
+  "connectedTo": "Connected to localhost",
   "notConnected": "Not Connected",
   "serverIp": "Use this IP to connect other devices to this server.",
   "remoteServerIp": "Remote Server IP",
@@ -1172,5 +1172,7 @@
   "xlError2": "Import finished with some issues",
   "xlSuccess": "All products imported successfully",
   "excelTitle": "Excel",
-  "newProduct": "New Product"
+  "newProduct": "New Product",
+  "connectionSettings": "Connection Settings",
+  "noInformation": "No Information"
 }

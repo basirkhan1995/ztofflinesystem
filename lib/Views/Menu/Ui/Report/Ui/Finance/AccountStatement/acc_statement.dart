@@ -15,10 +15,12 @@ import 'package:zaitoonpro/Localizations/Bloc/localizations_bloc.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/bloc/sale_invoice_bloc.dart';
 import '../../../../../../../Features/Date/z_generic_date.dart';
 import '../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Other/utils.dart';
+import '../../../../../../../Features/Other/znavigator.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../Features/Widgets/share_helper.dart';
@@ -35,6 +37,7 @@ import '../../../../Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/txn_reference.dart';
 import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/stk_acc_model.dart';
+import '../../../../Stock/Ui/OrderScreen/NewPurchase/bloc/purchase_invoice_bloc.dart';
 import '../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
 import '../../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import '../../TransactionRef/transaction_ref.dart';
@@ -44,20 +47,22 @@ import 'bloc/acc_statement_bloc.dart';
 import 'model/stmt_model.dart';
 import 'package:flutter/services.dart';
 class AccountStatementView extends StatelessWidget {
-  const AccountStatementView({super.key});
+  final int? initialAccountNumber;
+  const AccountStatementView({super.key,this.initialAccountNumber});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: _Mobile(),
-      tablet: _Mobile(),
-      desktop: _Desktop(),
+      mobile: _Mobile(initialAccountNumber),
+      tablet: _Mobile(initialAccountNumber),
+      desktop: _Desktop(initialAccountNumber),
     );
   }
 }
 
 class _Mobile extends StatefulWidget {
-  const _Mobile();
+  final int? initialAccountNumber;
+  const _Mobile(this.initialAccountNumber);
 
   @override
   State<_Mobile> createState() => _MobileState();
@@ -78,8 +83,25 @@ class _MobileState extends State<_Mobile> {
   @override
   void initState() {
     myLocale = context.read<LocalizationBloc>().state.languageCode;
-    WidgetsBinding.instance.addPostFrameCallback((_) {});
     context.read<AccStatementBloc>().add(ResetAccStmtEvent());
+
+    final preset = widget.initialAccountNumber;
+    if (preset != null) {
+      accNumber = preset;
+      accountController.text = preset.toString();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<AccStatementBloc>().add(
+          LoadAccountStatementEvent(
+            accountNumber: preset,
+            fromDate: fromDate,
+            toDate: toDate,
+          ),
+        );
+      });
+    }
+
     super.initState();
   }
 
@@ -522,7 +544,8 @@ class _MobileState extends State<_Mobile> {
 }
 
 class _Desktop extends StatefulWidget {
-  const _Desktop();
+  final int? initialAccountNumber;
+  const _Desktop(this.initialAccountNumber);
 
   @override
   State<_Desktop> createState() => _DesktopState();
@@ -571,8 +594,26 @@ class _DesktopState extends State<_Desktop> {
     fromDate = startOfMonth.toApiStartDate();
     toDate = todayOfMonth.toApiEndDate();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {});
     context.read<AccStatementBloc>().add(ResetAccStmtEvent());
+
+    // Auto-trigger statement load when opened with a preselected account.
+    final preset = widget.initialAccountNumber;
+    if (preset != null) {
+      accNumber = preset;
+      accountController.text = preset.toString();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<AccStatementBloc>().add(
+          LoadAccountStatementEvent(
+            accountNumber: preset,
+            fromDate: fromDate,
+            toDate: toDate,
+          ),
+        );
+      });
+    }
+
     super.initState();
   }
 
@@ -608,18 +649,19 @@ class _DesktopState extends State<_Desktop> {
 
     // Handle SALE and PRCH directly - open invoice views without loading dialog
     if (txnType == 'SALE') {
-      Utils.goto(
-        context,
-        NewSaleView(orderId: reference),
-      );
+      context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
+      // A tiny delay to ensure state is cleared before navigation
+      Future.delayed(const Duration(milliseconds: 50), () {
+        ZNavigator.goto(NewSaleView(orderId: reference));
+      });
       return;
     }
 
     if (txnType == 'PRCH') {
-      Utils.goto(
-        context,
-        NewPurchaseOrderView(orderId: reference),
-      );
+      context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
+      Future.delayed(const Duration(milliseconds: 50), () {
+        ZNavigator.goto(NewPurchaseOrderView(orderId: reference),);
+      });
       return;
     }
 

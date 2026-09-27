@@ -259,165 +259,158 @@ class _DesktopState extends State<_Desktop> {
     };
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: GlobalShortcuts(
         shortcuts: shortcuts,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: ListTile(
-                        tileColor: Colors.transparent,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          tr.individuals,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontSize: 20),
-                        ),
-                        subtitle: Text(
-                          AppLocalizations.of(context)!.stakeholderManage,
-                          style: const TextStyle(fontSize: 12),
-                        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                spacing: 8,
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: ListTile(
+                      tileColor: Colors.transparent,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        tr.individuals,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontSize: 20),
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(context)!.stakeholderManage,
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
-                    Expanded(
-                      flex: 3,
-                      child: ZSearchField(
-                        icon: Icons.search,
-                        controller: searchController,
-                        hint: AppLocalizations.of(context)!.search,
-                        onChanged: (e) {
-                          setState(() {});
-                        },
-                        title: "",
-                      ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: ZSearchField(
+                      icon: Icons.search,
+                      controller: searchController,
+                      hint: AppLocalizations.of(context)!.search,
+                      onChanged: (e) {
+                        setState(() {});
+                      },
+                      title: "",
                     ),
+                  ),
+                  ZOutlineButton(
+                    toolTip: "F5",
+                    width: 120,
+                    icon: Icons.refresh,
+                    onPressed: onRefresh,
+                    label: Text(tr.refresh),
+                  ),
+                  if (login.hasPermission(106) ?? false)
                     ZOutlineButton(
-                      toolTip: "F5",
+                      toolTip: "F1",
                       width: 120,
-                      icon: Icons.refresh,
-                      onPressed: onRefresh,
-                      label: Text(tr.refresh),
+                      icon: Icons.add,
+                      isActive: true,
+                      onPressed: onAdd,
+                      label: Text(tr.newKeyword),
                     ),
-                    if (login.hasPermission(106) ?? false)
-                      ZOutlineButton(
-                        toolTip: "F1",
-                        width: 120,
-                        icon: Icons.add,
-                        isActive: true,
-                        onPressed: onAdd,
-                        label: Text(tr.newKeyword),
-                      ),
-                  ],
-                ),
+                ],
               ),
-              Expanded(
-                child: BlocConsumer<IndividualsBloc, IndividualsState>(
-                  listener: (context, state) {
-                    if (state is IndividualSuccessState ||
-                        state is IndividualSuccessImageState) {
-                      onRefresh();
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state is IndividualLoadingState) {
-                      return UniversalShimmer.accountList(
+            ),
+            Expanded(
+              child: BlocConsumer<IndividualsBloc, IndividualsState>(
+                listener: (context, state) {
+                  if (state is IndividualSuccessState ||
+                      state is IndividualSuccessImageState) {
+                    onRefresh();
+                  }
+                },
+                builder: (context, state) {
+                  if (state is IndividualLoadingState) {
+                    return Container(
+                      color: Theme.of(context).colorScheme.surface,
+                      child: UniversalShimmer.accountList(
                         itemCount: 8,
                         useAlternatingColors: true,
-                      );
-                    }
-                    if (state is IndividualErrorState) {
-                      return NoDataWidget(
-                        message: state.message,
-                        onRefresh: () {
-                          context.read<IndividualsBloc>().add(
-                            LoadIndividualsEvent(),
-                          );
-                        },
-                      );
-                    }
-                    if (state is IndividualLoadedState) {
-                      final query = searchController.text.toLowerCase().trim();
-                      final filteredList = state.individuals.where((item) {
-                        final name = item.perName?.toLowerCase() ?? '';
-                        return name.contains(query);
-                      }).toList();
-
-                      if (filteredList.isEmpty) {
-                        return NoDataWidget(
-                          message: tr.noDataFound,
+                      ),
+                    );
+                  }
+                  if (state is IndividualErrorState) {
+                    return NoDataWidget(
+                      message: state.message,
+                      onRefresh: () {
+                        context.read<IndividualsBloc>().add(
+                          LoadIndividualsEvent(),
                         );
-                      }
-                      return GridView.builder(
-                        padding: const EdgeInsets.all(15),
-                        gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 200,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 22,
-                          childAspectRatio: 0.80,
-                        ),
-                        itemCount: filteredList.length,
-                        itemBuilder: (context, index) {
-                          final stk = filteredList[index];
+                      },
+                    );
+                  }
+                  if (state is IndividualLoadedState) {
+                    final query = searchController.text.toLowerCase().trim();
+                    final filteredList = state.individuals.where((item) {
+                      final name = item.perName?.toLowerCase() ?? '';
+                      return name.contains(query);
+                    }).toList();
 
-                          final firstName = stk.perName?.trim() ?? "";
-                          final lastName = stk.perLastName?.trim() ?? "";
-                          final fullName = "$firstName $lastName".trim();
-
-                          return ZCard(
-                            image: ImageHelper.stakeholderProfile(
-                              imageName: stk.imageProfile,
-                              size: 60,
-                            ),
-                            title: fullName.isNotEmpty ? fullName : "—",
-                            subtitle: stk.perEmail,
-                            status: InfoStatus(
-                              label: Utils.genderType(
-                                gender: stk.perGender ?? "",
-                                locale: tr,
-                              ),
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            infoItems: [
-                              InfoItem(
-                                icon: Icons.location_city_rounded,
-                                text: stk.addCity ?? "-",
-                              ),
-                              InfoItem(
-                                icon: Icons.phone,
-                                text: stk.perPhone ?? "-",
-                              ),
-
-                            ],
-                            onTap: (login.hasPermission(32) ?? false)
-                                ? () {
-                              Utils.goto(
-                                context,
-                                IndividualProfileView(ind: stk),
-                              );
-                            }
-                                : null,
-                          );
-                        },
+                    if (filteredList.isEmpty) {
+                      return NoDataWidget(
+                        message: tr.noDataFound,
                       );
                     }
-                    return const SizedBox();
-                  },
-                ),
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(15),
+                      gridDelegate:
+                      const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 200,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 22,
+                        childAspectRatio: 0.80,
+                      ),
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        final stk = filteredList[index];
+
+                        final firstName = stk.perName?.trim() ?? "";
+                        final lastName = stk.perLastName?.trim() ?? "";
+                        final fullName = "$firstName $lastName".trim();
+
+                        return ZCard(
+                          image: ImageHelper.stakeholderProfile(
+                            imageName: stk.imageProfile,
+                            size: 70,
+                            border: BoxBorder.all(color: Theme.of(context).colorScheme.surfaceContainerHighest)
+                          ),
+                          title: fullName.isNotEmpty ? fullName : "—",
+                          subtitle: stk.perEmail,
+                          infoItems: [
+                            InfoItem(
+                              icon: Icons.location_city_rounded,
+                              text: stk.addCity ?? "-",
+                            ),
+                            InfoItem(
+                              icon: Icons.phone,
+                              text: stk.perPhone ?? "-",
+                            ),
+
+                          ],
+                          onTap: (login.hasPermission(32) ?? false)
+                              ? () {
+                            Utils.goto(
+                              context,
+                              IndividualProfileView(ind: stk),
+                            );
+                          }
+                              : null,
+                        );
+                      },
+                    );
+                  }
+                  return const SizedBox();
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

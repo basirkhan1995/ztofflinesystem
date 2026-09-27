@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 
 /// A generic card widget for displaying information with avatar, title, subtitle,
 /// status badge, and multiple info rows - with centered content layout.
@@ -42,6 +43,11 @@ class ZCard extends StatefulWidget {
   /// Custom builder for the info items section
   final Widget Function(BuildContext context)? infoItemsBuilder;
 
+  /// Widget shown when there are no visible info items.
+  /// Pinned to the bottom of the card.
+  /// Pass [SizedBox.shrink] to hide it entirely.
+  final Widget? emptyInfoWidget;
+
   const ZCard({
     super.key,
     this.image,
@@ -57,6 +63,7 @@ class ZCard extends StatefulWidget {
     this.imageBuilder,
     this.titleBuilder,
     this.infoItemsBuilder,
+    this.emptyInfoWidget,
   });
 
   @override
@@ -96,9 +103,17 @@ class InfoStatus {
 class _ZCardState extends State<ZCard> {
   bool _isHovering = false;
 
+  /// Only keep info items that actually have text.
+  /// This prevents an orphan icon (e.g. phone/location) from rendering
+  /// when the corresponding value is null or empty.
+  List<InfoItem> get _visibleInfoItems =>
+      widget.infoItems.where((item) => item.text.trim().isNotEmpty).toList();
+
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme;
+    final visibleInfoItems = _visibleInfoItems;
+    final hasInfo = visibleInfoItems.isNotEmpty;
 
     return MouseRegion(
       cursor: widget.onTap != null
@@ -138,21 +153,29 @@ class _ZCardState extends State<ZCard> {
           child: Padding(
             padding: widget.padding,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              /// Always fill the card height so the footer (info items or
+              /// empty state) is pushed to the very bottom via [Spacer].
+              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 /// Header (Image + Title + Status) - CENTERED
                 _buildHeaderSection(context),
 
-                if (widget.showDivider && widget.infoItems.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  const Divider(height: 1),
-                  const SizedBox(height: 8),
-                ],
+                /// Push the footer to the bottom of the card
+                const Spacer(),
 
-                /// Info Items - CENTERED
-                if (widget.infoItems.isNotEmpty)
-                  _buildInfoItemsSection(context),
+                /// Divider only shows if there is at least one visible info row
+                // if (widget.showDivider && hasInfo)...[
+                //   const Divider(height: 1),
+                //   SizedBox(height: 5)
+                // ],
+
+
+                /// Footer: info pills or the empty state, always at the bottom
+                if (hasInfo)
+                  _buildInfoItemsSection(context, visibleInfoItems)
+                else
+                  _buildEmptyInfo(context),
               ],
             ),
           ),
@@ -233,20 +256,118 @@ class _ZCardState extends State<ZCard> {
     );
   }
 
-  Widget _buildInfoItemsSection(BuildContext context) {
+  Widget _buildInfoItemsSection(
+      BuildContext context,
+      List<InfoItem> items,
+      ) {
     if (widget.infoItemsBuilder != null) {
       return widget.infoItemsBuilder!(context);
     }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: widget.infoItems
-          .map((item) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: _buildCenteredInfoRow(item, context),
-      ))
-          .toList(),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < items.length; i++) ...[
+          if (i != 0) const SizedBox(height: 6),
+          _buildInfoPill(items[i], context),
+        ],
+      ],
+    );
+  }
+
+  /// A single polished info row: tinted icon badge + text,
+  /// wrapped in a subtle rounded container.
+  Widget _buildInfoPill(InfoItem item, BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = item.iconColor ?? theme.colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: .06),
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(
+          color: accent.withValues(alpha: .12),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          /// Small circular tinted badge behind the icon
+          Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: .15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              item.icon,
+              size: 12,
+              color: accent,
+            ),
+          ),
+          const SizedBox(width: 7),
+          Flexible(
+            child: Text(
+              item.text,
+              style: item.textStyle ??
+                  theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Compact styled empty state pinned to the bottom of the card.
+  Widget _buildEmptyInfo(BuildContext context) {
+    if (widget.emptyInfoWidget != null) {
+      return widget.emptyInfoWidget!;
+    }
+
+    final theme = Theme.of(context);
+    final color = theme.colorScheme;
+    final muted = theme.hintColor;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.surfaceContainerHighest.withValues(alpha: .35),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: color.outline.withValues(alpha: .15),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.info_outline_rounded, size: 13, color: muted),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              AppLocalizations.of(context)!.noData,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                color: muted,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -266,29 +387,6 @@ class _ZCardState extends State<ZCard> {
               color: status.color,
             ),
       ),
-    );
-  }
-
-  Widget _buildCenteredInfoRow(InfoItem item, BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          item.icon,
-          size: 14,
-          color: item.iconColor ?? Theme.of(context).hintColor,
-        ),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            item.text,
-            style: item.textStyle ?? Theme.of(context).textTheme.bodySmall,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ],
     );
   }
 }

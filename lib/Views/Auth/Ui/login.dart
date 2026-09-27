@@ -801,10 +801,11 @@ class _DesktopState extends State<_Desktop> {
                           final result = await showDialog(
                             context: context,
                             builder: (context) => ZFormDialog(
+                               width: 500,
                               padding: EdgeInsets.all(15),
                                 onAction: null,
-                                icon: Icons.network_check,
-                                title: "اتصال شبکه",
+                                icon: Icons.perm_data_setting_rounded,
+                                title: AppLocalizations.of(context)!.connectionSettings,
                                 isActionTrue: false,
                                 child: ServerConnectDialog(),
                             ),

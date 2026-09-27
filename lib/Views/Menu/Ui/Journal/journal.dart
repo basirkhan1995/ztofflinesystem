@@ -4427,6 +4427,7 @@ class _DesktopViewState extends State<_DesktopView> {
     };
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: BlocBuilder<CompanyProfileBloc, CompanyProfileState>(
         builder: (context, companyState) {
           if (companyState is CompanyProfileLoadedState) {
@@ -4491,6 +4492,7 @@ class _DesktopViewState extends State<_DesktopView> {
                           title: locale.journal,
                           description: locale.journalHint,
                           style: ZTabStyle.rounded,
+                          margin: EdgeInsets.symmetric(vertical: 2),
                           tabBarPadding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
                           borderRadius: 0,
                           selectedColor: Theme.of(context).colorScheme.primary,
@@ -4506,7 +4508,7 @@ class _DesktopViewState extends State<_DesktopView> {
                     clipBehavior: Clip.hardEdge,
                     duration: const Duration(milliseconds: 300),
                     width: _isExpanded ? 170 : 70,
-                    margin: EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+                    margin: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                     height: double.infinity,
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -4524,7 +4526,7 @@ class _DesktopViewState extends State<_DesktopView> {
                     ),
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: 10,
                         vertical: 12,
                       ),
                       child: Column(
@@ -4544,9 +4546,9 @@ class _DesktopViewState extends State<_DesktopView> {
                                 if (_isExpanded)
                                   Flexible(
                                     child: Text(
-                                      locale.shortcuts,
+                                      locale.actions,
                                       overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context).textTheme.titleSmall,
+                                      style: Theme.of(context).textTheme.titleMedium,
                                     ),
                                   ),
                                 Container(

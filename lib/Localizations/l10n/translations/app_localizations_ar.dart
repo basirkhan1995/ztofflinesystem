@@ -3467,7 +3467,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get applyDiscount => 'ثبت به عنوان تخفیف';
 
   @override
-  String get connectedTo => 'اتصال به دستگاه محلی';
+  String get connectedTo => 'په محلی سرور کی اتصال';
 
   @override
   String get notConnected => 'قطع اتصال';
@@ -3543,4 +3543,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get newProduct => 'نوی کالا';
+
+  @override
+  String get connectionSettings => 'اتصال تنظیمات';
+
+  @override
+  String get noInformation => 'معلومات نشته';
 }

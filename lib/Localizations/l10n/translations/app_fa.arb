@@ -1148,7 +1148,7 @@
   "otherDetails": "جزئیات دیگر",
   "itemsCount": "تعداد قلم",
   "applyDiscount": "ثبت به عنوان تخفیف",
-  "connectedTo": "اتصال به دستگاه محلی",
+  "connectedTo": "اتصال به سرور محلی",
   "notConnected": "قطع اتصال",
   "serverIp": "از این آی‌ پی برای اتصال دستگاه‌ های دیگر به این سرور استفاده کنید",
   "remoteServerIp": "آی‌ پی سرور مقصد",
@@ -1172,5 +1172,7 @@
   "xlError2": "ایمپورت با چند مشکل انجام شد.",
   "xlSuccess": "تمام کالا ها موفقانه ثبت شد",
   "excelTitle": "اکسل",
-  "newProduct": "کالا جدید"
+  "newProduct": "کالا جدید",
+  "connectionSettings": "تنظیمات اتصال",
+  "noInformation": "بدون اطلاعات"
 }

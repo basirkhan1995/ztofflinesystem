@@ -6871,7 +6871,7 @@ abstract class AppLocalizations {
   /// No description provided for @connectedTo.
   ///
   /// In en, this message translates to:
-  /// **'Connected to local host.'**
+  /// **'Connected to localhost'**
   String get connectedTo;
 
   /// No description provided for @notConnected.
@@ -7017,6 +7017,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New Product'**
   String get newProduct;
+
+  /// No description provided for @connectionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Settings'**
+  String get connectionSettings;
+
+  /// No description provided for @noInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'No Information'**
+  String get noInformation;
 }
 
 class _AppLocalizationsDelegate

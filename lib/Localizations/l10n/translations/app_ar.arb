@@ -1148,7 +1148,7 @@
   "otherDetails": "جزئیات دیگر",
   "itemsCount": "قلم تعداد",
   "applyDiscount": "ثبت به عنوان تخفیف",
-  "connectedTo": "اتصال به دستگاه محلی",
+  "connectedTo": "په محلی سرور کی اتصال",
   "notConnected": "قطع اتصال",
   "serverIp": "دا آی پی د نورو وسیلو د دې سرور سره د نښلولو لپاره وکاروئ",
   "remoteServerIp": "د لرې سرور آی‌ پی",
@@ -1172,5 +1172,7 @@
   "xlError2": "ایمپورټ د ځینو ستونزو سره ترسره شو",
   "xlSuccess": "تمام کالا ها موفقانه ثبت شد",
   "excelTitle": "اکسل",
-  "newProduct": "نوی کالا"
+  "newProduct": "نوی کالا",
+  "connectionSettings": "اتصال تنظیمات",
+  "noInformation": "معلومات نشته"
 }

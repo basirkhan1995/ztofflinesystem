@@ -1003,6 +1003,7 @@ class _DesktopState extends State<_Desktop> {
       child: Stack(
         children: [
           Scaffold(
+            backgroundColor: Colors.transparent,
             body: Column(
               children: [
                 if (_selectionMode)

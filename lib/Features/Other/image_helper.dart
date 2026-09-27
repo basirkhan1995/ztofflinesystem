@@ -18,7 +18,7 @@ class ImageHelper {
     BoxFit fit = BoxFit.cover,
 
     // Placeholders / errors
-    Color placeholderColor = const Color.fromRGBO(128, 128, 128, 0.2),
+    Color placeholderColor = const Color.fromRGBO(128, 128, 128, 0.08),
     Color errorColor = Colors.red,
     IconData placeholderIcon = Icons.person,
     IconData errorIcon = Icons.error,
@@ -51,7 +51,7 @@ class ImageHelper {
         child: Icon(
           placeholderIcon,
           size: size * 0.5,
-          color: Colors.white,
+          color: Colors.grey,
         ),
       );
     } else {

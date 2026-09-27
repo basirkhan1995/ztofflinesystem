@@ -3463,7 +3463,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get applyDiscount => 'ثبت به عنوان تخفیف';
 
   @override
-  String get connectedTo => 'اتصال به دستگاه محلی';
+  String get connectedTo => 'اتصال به سرور محلی';
 
   @override
   String get notConnected => 'قطع اتصال';
@@ -3539,4 +3539,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get newProduct => 'کالا جدید';
+
+  @override
+  String get connectionSettings => 'تنظیمات اتصال';
+
+  @override
+  String get noInformation => 'بدون اطلاعات';
 }

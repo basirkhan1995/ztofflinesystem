@@ -1458,6 +1458,7 @@ class _DesktopState extends State<_Desktop> {
       child: Stack(
         children: [
           Scaffold(
+            backgroundColor: Colors.transparent,
             body: Column(
               children: [
                 Padding(
@@ -1564,9 +1565,12 @@ class _DesktopState extends State<_Desktop> {
                         );
                       }
                       if (state is TxnLoadingState) {
-                        return UniversalShimmer.dataList(
-                          itemCount: 15,
-                          numberOfColumns: 5,
+                        return Container(
+                          color: Theme.of(context).colorScheme.surface,
+                          child: UniversalShimmer.dataList(
+                            itemCount: 15,
+                            numberOfColumns: 5,
+                          ),
                         );
                       }
                       if (state is TransactionLoadedState) {
@@ -1616,7 +1620,7 @@ class _DesktopState extends State<_Desktop> {
                                       .withValues(alpha: .05),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                        color: index.isOdd
+                                        color: index.isEven
                                             ? Theme.of(context)
                                             .colorScheme
                                             .primary

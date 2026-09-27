@@ -1,4 +1,3 @@
-// server_connect_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -649,8 +648,7 @@ class _DesktopServerConnectState extends State<_DesktopServerConnect> {
                 color: Colors.white,
               ),
             )
-                : Text(
-              "وصل کردن",
+                : Text(AppLocalizations.of(context)!.connect,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

@@ -146,23 +146,23 @@ class AccountStatementPrintSettings extends PrintServices {
       }
     }
 
-      // Calculate totals
-      double totalCredit = 0;
-      double totalDebit = 0;
-      String openingBalance = '0.0';
-      String availableBalance = '0.0';
-      String currentBalance = '0.0';
+    // Calculate totals
+    double totalCredit = 0;
+    double totalDebit = 0;
+    String openingBalance = '0.0';
+    String availableBalance = '0.0';
+    String currentBalance = '0.0';
 
 
-      // Get opening balance from first record
-      openingBalance = info.records?.first.total?.toAmount() ?? '0.0';
+    // Get opening balance from first record
+    openingBalance = info.records?.first.total?.toAmount() ?? '0.0';
 
-      for (var item in info.records ?? []) {
-        totalCredit += parseAmount(item.credit);
-        totalDebit += parseAmount(item.debit);
-        availableBalance = info.avilBalance??"";
-        currentBalance = info.curBalance??"";
-      }
+    for (var item in info.records ?? []) {
+      totalCredit += parseAmount(item.credit);
+      totalDebit += parseAmount(item.debit);
+      availableBalance = info.avilBalance??"";
+      currentBalance = info.curBalance??"";
+    }
 
 
     return pw.Container(
@@ -246,16 +246,16 @@ class AccountStatementPrintSettings extends PrintServices {
                 ),
               ] else
                 buildTotalSummary(
-                label: tr(
-                  text: 'netBalance',
-                  tr: language,
+                  label: tr(
+                    text: 'netBalance',
+                    tr: language,
+                  ),
+                  applyBalanceColor: true,
+                  balanceValue: currentBalance.toDoubleAmount(),
+                  ccySymbol: info.actCurrency,
+                  value: currentBalance.toAmount(),
+                  isEmphasized: true,
                 ),
-                applyBalanceColor: true,
-                balanceValue: currentBalance.toDoubleAmount(),
-                ccySymbol: info.actCurrency,
-                value: currentBalance.toAmount(),
-                isEmphasized: true,
-              ),
             ],
           ),
         ],
@@ -292,59 +292,37 @@ class AccountStatementPrintSettings extends PrintServices {
               horizontalDivider(width: 200),
               pw.SizedBox(height: 1),
               buildSummary(
-                color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(
                   text: 'accountName',
                   tr: language,
                 ),
-                value: statement.accName??"",
-              ),
-              pw.SizedBox(height: 1),
-              buildSummary(
-                distance: 75,
-                color: pw.PdfColors.grey800,
-                label: tr(
-                  text: 'accountNumber',
-                  tr: language,
-                ),
-                value: statement.accNumber.toString(),
+                value: "${statement.accNumber} | ${statement.accName}",
               ),
 
               pw.SizedBox(height: 1),
               buildSummary(
-                color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'signatory', tr: language),
                 value: "${statement.signatory}",
               ),
               pw.SizedBox(height: 1),
               buildSummary(
-                color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'currency', tr: language),
                 value: "${statement.actCurrency}",
               ),
               pw.SizedBox(height: 1),
               buildSummary(
-                color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'mobile', tr: language),
                 value: "${statement.perPhone}",
               ),
               pw.SizedBox(height: 1),
               buildSummary(
-                color: pw.PdfColors.grey800,
-                distance: 75,
-                label: tr(text: 'email', tr: language),
-                value: statement.perEmail??"",
-              ),
-              pw.SizedBox(height: 1),
-              buildSummary(
-                color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'address', tr: language),
-                value: "${statement.address}",
+                value: statement.address??"",
               ),
             ],
           ),
@@ -482,7 +460,7 @@ class AccountStatementPrintSettings extends PrintServices {
             width: double.infinity,
             padding: const pw.EdgeInsets.symmetric(vertical: 4,horizontal: 4),
             decoration: pw.BoxDecoration(
-             color: i.isOdd ? pw.PdfColors.grey100 : null,
+              color: i.isOdd ? pw.PdfColors.grey100 : null,
             ),
             child: pw.Row(
               children: [
@@ -493,7 +471,7 @@ class AccountStatementPrintSettings extends PrintServices {
                         ? pw.TextAlign.left
                         : pw.TextAlign.right,
                     text: isGre? items.records![i].trnEntryDate!.toFormattedDate() : items.records![i].trnEntryDate!.shamsiDateString,
-                    fontSize: language == "en"? 8 : 9,
+                    fontSize: language == "en"? 9 : 10,
                   ),
                 ),
                 pw.SizedBox(
@@ -510,16 +488,16 @@ class AccountStatementPrintSettings extends PrintServices {
                 pw.Expanded(
                   child:   pw.SizedBox(
                     child: zText(
-                      textAlign:
-                      language == "en"
-                          ? pw.TextAlign.left
-                          : pw.TextAlign.right,
-                      text:
-                      items.records![i].trdNarration == "Opening Balance" ? tr(
-                        text: 'openingBalance',
-                        tr: language,
-                      ) : items.records![i].trdNarration ?? "",
-                      fontSize: 7
+                        textAlign:
+                        language == "en"
+                            ? pw.TextAlign.left
+                            : pw.TextAlign.right,
+                        text:
+                        items.records![i].trdNarration == "Opening Balance" ? tr(
+                          text: 'openingBalance',
+                          tr: language,
+                        ) : items.records![i].trdNarration ?? "",
+                        fontSize: 8
                     ),
                   ),
                 ),
@@ -529,7 +507,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   child: zText(
                     textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
                     text: items.records![i].debit?.toAmount()??"",
-                    fontSize: 8,
+                    fontSize: 9,
                   ),
                 ),
                 pw.SizedBox(
@@ -537,7 +515,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   child: zText(
                     textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
                     text: items.records![i].credit?.toAmount() ??"",
-                    fontSize: 8,
+                    fontSize: 9,
                   ),
                 ),
 
@@ -551,7 +529,7 @@ class AccountStatementPrintSettings extends PrintServices {
                         items.records![i].total,
                         items.records![i].trdNarration
                     ),
-                    fontSize: 8,
+                    fontSize: 9,
                   ),
                 ),
               ],

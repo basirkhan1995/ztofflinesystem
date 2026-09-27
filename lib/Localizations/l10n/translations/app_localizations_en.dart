@@ -3475,7 +3475,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get applyDiscount => 'Apply as discount';
 
   @override
-  String get connectedTo => 'Connected to local host.';
+  String get connectedTo => 'Connected to localhost';
 
   @override
   String get notConnected => 'Not Connected';
@@ -3550,4 +3550,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newProduct => 'New Product';
+
+  @override
+  String get connectionSettings => 'Connection Settings';
+
+  @override
+  String get noInformation => 'No Information';
 }
