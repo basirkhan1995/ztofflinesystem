@@ -56,7 +56,6 @@ class NewPurchaseOrderView extends StatelessWidget {
   }
 }
 
-// Desktop Version
 class _DesktopPurchaseOrderView extends StatefulWidget {
   final dynamic orderId;
   const _DesktopPurchaseOrderView(this.orderId);
@@ -70,10 +69,16 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _xRefController = TextEditingController();
   final TextEditingController _remark = TextEditingController();
   final TextEditingController _exchangeRateController = TextEditingController();
-  final List<List<FocusNode>> _rowFocusNodes = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final FocusNode _supplierFocusNode = FocusNode();
   final FocusNode _accountFocusNode = FocusNode();
+  final ScrollController _itemsScrollController = ScrollController();
+
+  // These are references to FocusNodes owned by visible row states.
+  // The parent never disposes them. Each _PurchaseItemRow owns/disposes its node.
+  final Map<String, FocusNode> _productFocusRegistry = {};
+
+  bool _focusNewRowAfterAdd = false;
   bool _shouldAutoFocusProduct = true;
   int? ordNumber;
   void _confirmDeleteOrder() {
@@ -116,9 +121,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context,setState) {
-          return PurchasePaymentDialog(state: state);
-        }
+          builder: (context,setState) {
+            return PurchasePaymentDialog(state: state);
+          }
       ),
     );
   }
@@ -126,26 +131,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   String? _userName;
   String? baseCurrency = "";
   int? signatory;
-  void _focusNewRowIfNeeded(PurchaseInvoiceLoaded state) {
-    if (!mounted) return;
-
-    // Don't auto-focus product if we're in account selection mode
-    if (!_shouldAutoFocusProduct) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (_personController.text.isEmpty) return;
-      for (int i = 0; i < state.items.length; i++) {
-        final item = state.items[i];
-        if (item.productId.isEmpty) {
-          if (i < _rowFocusNodes.length && _rowFocusNodes[i].isNotEmpty) {
-            _rowFocusNodes[i][0].requestFocus();
-            break;
-          }
-        }
-      }
-    });
-  }
   void _updateControllersFromState(PurchaseInvoiceState state) {
     if (state is PurchaseInvoiceLoaded) {
       // Update exchange rate controller if needed
@@ -210,7 +195,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 rate: rate,
                 fromCurrency: state.fromCurrency ?? baseCurrency ?? '',
                 toCurrency:
-                    state.toCurrency ??
+                state.toCurrency ??
                     state.supplierAccount!.actCurrency ??
                     '',
               ),
@@ -238,11 +223,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       final purchaseBloc = context.read<PurchaseInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
-       final purState = purchaseBloc.state;
-        if (purState is PurchaseInvoiceLoaded || purState is PurchaseInvoiceSaving) {
-          final current = purState is PurchaseInvoiceSaving ? purState : (purState as PurchaseInvoiceLoaded);
-          accountCcy = current.toCurrency;
-        }
+      final purState = purchaseBloc.state;
+      if (purState is PurchaseInvoiceLoaded || purState is PurchaseInvoiceSaving) {
+        final current = purState is PurchaseInvoiceSaving ? purState : (purState as PurchaseInvoiceLoaded);
+        accountCcy = current.toCurrency;
+      }
       _clearAllControllers();
       if (widget.orderId != null) {
         _isEditMode = true;
@@ -258,15 +243,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
   @override
   void dispose() {
-    for (final row in _rowFocusNodes) {
-      for (final node in row) {
-        node.dispose();
-      }
-    }
-    _rowFocusNodes.clear();
-
     _supplierFocusNode.dispose();
     _accountFocusNode.dispose();
+    _itemsScrollController.dispose();
 
     _accountController.dispose();
     _personController.dispose();
@@ -280,6 +259,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _qtyControllers.clear();
     _batchControllers.clear();
     _localeAmountControllers.clear();
+    _productFocusRegistry.clear();
 
     super.dispose();
   }
@@ -292,12 +272,110 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _xRefController.clear();
     _remark.clear();
     _exchangeRateController.clear();
+  }
 
-    for (final row in _rowFocusNodes) {
-      for (final node in row) {
-        node.unfocus();
+  /// Focus the first empty product row after an account is selected.
+  /// FocusNodes remain owned by their row widgets; this map only holds references.
+  void _focusFirstEmptyProduct() {
+    if (!_shouldAutoFocusProduct || !mounted) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_shouldAutoFocusProduct) return;
+
+      final state = context.read<PurchaseInvoiceBloc>().state;
+      if (state is! PurchaseInvoiceLoaded) return;
+
+      for (final item in state.items) {
+        if (item.productId.isEmpty) {
+          final node = _productFocusRegistry[item.rowId];
+          if (node != null) {
+            if (node.canRequestFocus) {
+              node.requestFocus();
+            }
+          }
+          return;
+        }
+      }
+    });
+  }
+
+  void _focusProductRow(int rowIndex) {
+    if (!mounted) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final state = context.read<PurchaseInvoiceBloc>().state;
+      if (state is! PurchaseInvoiceLoaded) return;
+      if (rowIndex < 0 || rowIndex >= state.items.length) return;
+
+      final rowId = state.items[rowIndex].rowId;
+      final node = _productFocusRegistry[rowId];
+      if (node != null && node.canRequestFocus) {
+        node.requestFocus();
+      }
+    });
+  }
+
+  void _focusNewlyAddedRowProduct() {
+    if (!mounted || !_shouldAutoFocusProduct) return;
+
+    final bloc = context.read<PurchaseInvoiceBloc>();
+
+    // The new row is appended to the END of the ListView. With many rows,
+    // Flutter may not build that row until it becomes visible. Therefore:
+    //   1. wait for the BLoC state to rebuild the list
+    //   2. scroll to the bottom
+    //   3. wait for the new row to mount
+    //   4. focus its Product field
+    Future<void> focusAfterBuild() async {
+      if (!mounted || !_shouldAutoFocusProduct) return;
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (!mounted || !_shouldAutoFocusProduct) return;
+
+      if (_itemsScrollController.hasClients) {
+        await _itemsScrollController.animateTo(
+          _itemsScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+        );
+      }
+
+      // Give ListView time to build the newly visible last row.
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (!mounted || !_shouldAutoFocusProduct) return;
+
+      var attempts = 0;
+      while (mounted && _shouldAutoFocusProduct && attempts < 10) {
+        final state = bloc.state;
+
+        if (state is PurchaseInvoiceLoaded && state.items.isNotEmpty) {
+          final newItem = state.items.last;
+          final node = _productFocusRegistry[newItem.rowId];
+
+          if (node != null && node.canRequestFocus) {
+            node.requestFocus();
+            return;
+          }
+        }
+
+        attempts++;
+        await Future.delayed(const Duration(milliseconds: 80));
       }
     }
+
+    // Run after the state change has reached the widget tree.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      focusAfterBuild();
+    });
+  }
+
+  void _addNewRowAndFocusFromParent() {
+    if (!mounted) return;
+    _shouldAutoFocusProduct = true;
+    _focusNewRowAfterAdd = true;
+    context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
   }
 
   void _resetForm() {
@@ -339,8 +417,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       child: BlocListener<PurchaseInvoiceBloc, PurchaseInvoiceState>(
         listener: (context, state) {
           if (state is PurchaseInvoiceLoaded) {
+            if (_focusNewRowAfterAdd) {
+              _focusNewRowAfterAdd = false;
+              _focusNewlyAddedRowProduct();
+            }
+
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _focusNewRowIfNeeded(state);
               _updateControllersFromState(state);
             });
           }
@@ -466,20 +548,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         ? state
                         : (state as PurchaseInvoiceLoaded);
                     final isSaving = state is PurchaseInvoiceSaving;
-                    // Add this to focus the first empty row if needed
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted && _shouldAutoFocusProduct && _personController.text.isNotEmpty) {
-                        for (int i = 0; i < current.items.length; i++) {
-                          final item = current.items[i];
-                          if (item.productId.isEmpty) {
-                            if (i < _rowFocusNodes.length && _rowFocusNodes[i].isNotEmpty) {
-                              _rowFocusNodes[i][0].requestFocus();
-                              break;
-                            }
-                          }
-                        }
-                      }
-                    });
                     return ZOutlineButton(
                       isActive: true,
                       icon: widget.orderId == null ? Icons.save_rounded : Icons.refresh,
@@ -488,13 +556,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           : widget.orderId == null ? () => _saveInvoice(context, current) : ()=> _updateInvoice(context, current),
                       label: isSaving
                           ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Theme.of(context).colorScheme.surface,
-                              ),
-                            )
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                      )
                           : Text(widget.orderId == null? tr.saveTitle : tr.update),
                     );
                   }
@@ -680,11 +748,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                           SelectSupplierAccountEvent(value),
                                         );
                                         _shouldAutoFocusProduct = true;
+                                        _focusFirstEmptyProduct();
                                         final companyState = context.read<CompanyProfileBloc>().state;
                                         if (companyState
                                         is CompanyProfileLoadedState) {
                                           final baseCurr = companyState.company.comLocalCcy ??
-                                                  '';
+                                              '';
                                           final accountCurrency =
                                               value.actCurrency ?? '';
 
@@ -758,6 +827,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                         SelectSupplierAccountEvent(value),
                                       );
                                       _shouldAutoFocusProduct = true;
+                                      _focusFirstEmptyProduct();
                                     },
                                     showClearButton: true,
                                   );
@@ -831,16 +901,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 final current = state is PurchaseInvoiceSaving
                                     ? state
                                     : (state as PurchaseInvoiceLoaded);
-                                _synchronizeFocusNodes(current.items.length);
                                 return ListView.builder(
+                                  controller: _itemsScrollController,
                                   itemCount: current.items.length,
                                   itemBuilder: (context, index) {
                                     final item = current.items[index];
                                     final isLastRow = index == current.items.length - 1;
-                                    final nodes = _rowFocusNodes[index];
                                     return _buildItemRow(
                                       item: item,
-                                      nodes: nodes,
                                       rowIndex: index,
                                       isLastRow: isLastRow,
                                       context: context,
@@ -881,57 +949,48 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
       child: Row(
         children:
-            [
-                  const SizedBox(
-                    width: 40,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text('#'),
-                    ),
-                  ),
-                  Expanded(child: Text(locale.products, style: title)),
-                  SizedBox(width: 100, child: Text(locale.qty)),
-                  if(visibility.isWholeSale)...[
-                    SizedBox(width: 100, child: Text(locale.batchTitle)),
-                    SizedBox(width: 100, child: Text(locale.totalQty)),
-                  ],
-                  SizedBox(
-                    width: 150,
-                    child: Text("${locale.unitPrice} ($baseCurrency)"),
-                  ),
-                  if (_needsLocalConversion(context))
-                    SizedBox(
-                      width: 150,
-                      child: Text(
-                        "${locale.unitPrice} ($accountCcy)",
-                      ),
-                    ),
-                  SizedBox(width: 150, child: Text(locale.salePrice)),
-                  SizedBox(
-                    width: 150,
-                    child: Text("${locale.landedPrice} ($baseCurrency)"),
-                  ),
-                  SizedBox(width: 180, child: Text(locale.warehouse)),
-                  SizedBox(width: 60, child: Text(locale.actions)),
-                ]
-                .map((child) => DefaultTextStyle(style: title!, child: child))
-                .toList(),
+        [
+          const SizedBox(
+            width: 40,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('#'),
+            ),
+          ),
+          Expanded(child: Text(locale.products, style: title)),
+          SizedBox(width: 100, child: Text(locale.qty)),
+          if(visibility.isWholeSale)...[
+            SizedBox(width: 100, child: Text(locale.batchTitle)),
+            SizedBox(width: 100, child: Text(locale.totalQty)),
+          ],
+          SizedBox(
+            width: 150,
+            child: Text("${locale.unitPrice} ($baseCurrency)"),
+          ),
+          if (_needsLocalConversion(context))
+            SizedBox(
+              width: 150,
+              child: Text(
+                "${locale.unitPrice} ($accountCcy)",
+              ),
+            ),
+          SizedBox(width: 150, child: Text(locale.salePrice)),
+          SizedBox(
+            width: 150,
+            child: Text("${locale.landedPrice} ($baseCurrency)"),
+          ),
+          SizedBox(width: 180, child: Text(locale.warehouse)),
+          SizedBox(width: 60, child: Text(locale.actions)),
+        ]
+            .map((child) => DefaultTextStyle(style: title!, child: child))
+            .toList(),
       ),
     );
-  }
-
-  void _setupRowFocus(int rowIndex) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (rowIndex < _rowFocusNodes.length && _rowFocusNodes[rowIndex].isNotEmpty) {
-        _rowFocusNodes[rowIndex][0].requestFocus(); // Always focus product field
-      }
-    });
   }
 
   Widget _buildItemRow({
     required BuildContext context,
     required PurchaseInvoiceItem item,
-    required List<FocusNode> nodes,
     required bool isLastRow,
     required int rowIndex,
   }) {
@@ -940,18 +999,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     return _PurchaseItemRow(
       key: ValueKey(item.rowId),
       item: item,
-      nodes: nodes,
       isLastRow: isLastRow,
       isLocked: isLocked,
       rowIndex: rowIndex,
-      onFocusNewRow: (rowIndex) {
-        _setupRowFocus(rowIndex);
-      },
       qtyControllers: _qtyControllers,
       batchControllers: _batchControllers,
       sellPriceControllers: _sellPriceControllers,
       purchasePriceControllers: _purchasePriceControllers,
       costPriceControllers: _costPriceControllers,
+      productFocusRegistry: _productFocusRegistry,
+      onFocusRowProduct: _focusProductRow,
+      onAddNewRowAndFocus: _addNewRowAndFocusFromParent,
       onDelete: (rowId) {
         context.read<PurchaseInvoiceBloc>().add(RemovePurchaseItemEvent(rowId));
       },
@@ -988,10 +1046,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       onProductSelected: (rowId, productId, productName, unit) {
         context.read<PurchaseInvoiceBloc>().add(
           UpdatePurchaseItemEvent(
-            rowId: rowId,
-            productId: productId,
-            productName: productName,
-            unit: unit
+              rowId: rowId,
+              productId: productId,
+              productName: productName,
+              unit: unit
           ),
         );
         _autoSelectFirstStorage(context, rowId);
@@ -1157,9 +1215,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             baseAmount: current.cashPayment,
                             baseCurrency: baseCurrency,
                             convertedAmount:
-                                (needsCashConversion &&
-                                    current.cashCurrency != null &&
-                                    current.cashCurrency != baseCurrency)
+                            (needsCashConversion &&
+                                current.cashCurrency != null &&
+                                current.cashCurrency != baseCurrency)
                                 ? current.cashPaymentInCashCurrency
                                 : null,
                             convertedCurrency: current.cashCurrency ?? "",
@@ -1171,8 +1229,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             baseAmount: current.creditAmount,
                             baseCurrency: baseCurrency,
                             convertedAmount:
-                                (current.supplierAccount != null &&
-                                    needsAccountConversion)
+                            (current.supplierAccount != null &&
+                                needsAccountConversion)
                                 ? current.creditAmountLocal
                                 : null,
                             convertedCurrency: current.toCurrency ?? "",
@@ -1185,9 +1243,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             baseAmount: current.cashPayment,
                             baseCurrency: baseCurrency,
                             convertedAmount:
-                                (needsCashConversion &&
-                                    current.cashCurrency != null &&
-                                    current.cashCurrency != baseCurrency)
+                            (needsCashConversion &&
+                                current.cashCurrency != null &&
+                                current.cashCurrency != baseCurrency)
                                 ? current.cashPaymentInCashCurrency
                                 : null,
                             convertedCurrency: current.cashCurrency ?? "",
@@ -1198,8 +1256,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             baseAmount: current.creditAmount,
                             baseCurrency: baseCurrency,
                             convertedAmount:
-                                (current.supplierAccount != null &&
-                                    needsAccountConversion)
+                            (current.supplierAccount != null &&
+                                needsAccountConversion)
                                 ? current.creditAmountLocal
                                 : null,
                             convertedCurrency: current.toCurrency ?? "",
@@ -1272,14 +1330,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             if (current.supplierAccountPayment > 0) ...[
                               const SizedBox(height: 4),
                               AmountDisplay(
-                                  baseAmount: current.supplierAccountPayment,
-                                  baseCurrency: baseCurrency,
-                                  title: tr.accountPayable,
-                                  convertedAmount: needsConversion ? current.supplierAccountPayment * (current.exchangeRate ?? 1) : null,
-                                  isPositive: true,
-                                  showSign: true,
-                                  fontSize: 16,
-                                  convertedCurrency: current.supplierAccount!.actCurrency!,
+                                baseAmount: current.supplierAccountPayment,
+                                baseCurrency: baseCurrency,
+                                title: tr.accountPayable,
+                                convertedAmount: needsConversion ? current.supplierAccountPayment * (current.exchangeRate ?? 1) : null,
+                                isPositive: true,
+                                showSign: true,
+                                fontSize: 16,
+                                convertedCurrency: current.supplierAccount!.actCurrency!,
                               ),
 
                               const SizedBox(height: 4),
@@ -1347,41 +1405,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         ),
       ],
     );
-  }
-
-  void _synchronizeFocusNodes(int itemCount) {
-    final visibility = context.read<SettingsVisibleBloc>().state;
-    final isWholeSale = visibility.isWholeSale;
-
-    while (_rowFocusNodes.length < itemCount) {
-      if (isWholeSale) {
-        // Full mode: Product, Qty, Batch, UnitPrice, SellPrice, Storage (6 fields)
-        _rowFocusNodes.add([
-          FocusNode(), // 0: Product
-          FocusNode(), // 1: Qty
-          FocusNode(), // 2: Batch
-          FocusNode(), // 3: Unit Price
-          FocusNode(), // 4: Sell Price
-          FocusNode(), // 5: Storage
-        ]);
-      } else {
-        // Non-wholesale mode: Product, Qty, UnitPrice, SellPrice, Storage (5 fields)
-        _rowFocusNodes.add([
-          FocusNode(), // 0: Product
-          FocusNode(), // 1: Qty
-          FocusNode(), // 2: Unit Price
-          FocusNode(), // 3: Sell Price
-          FocusNode(), // 4: Storage
-        ]);
-      }
-    }
-
-    while (_rowFocusNodes.length > itemCount) {
-      final removed = _rowFocusNodes.removeLast();
-      for (final node in removed) {
-        node.dispose();
-      }
-    }
   }
 
   String _getPaymentModeLabel(PaymentMode mode) {
@@ -1651,8 +1674,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
 class _PurchaseItemRow extends StatefulWidget {
   final PurchaseInvoiceItem item;
-  final List<FocusNode> nodes;
-  final Function(int)? onFocusNewRow;
   final bool isLastRow;
   final int rowIndex;
   final bool isLocked;
@@ -1661,6 +1682,9 @@ class _PurchaseItemRow extends StatefulWidget {
   final Map<String, TextEditingController> sellPriceControllers;
   final Map<String, TextEditingController> purchasePriceControllers;
   final Map<String, TextEditingController> costPriceControllers;
+  final Map<String, FocusNode> productFocusRegistry;
+  final ValueChanged<int>? onFocusRowProduct;
+  final VoidCallback? onAddNewRowAndFocus;
   final Function(String) onDelete;
   final Function(String, int) onQtyChanged;
   final Function(String, int) onBatchChanged;
@@ -1672,7 +1696,6 @@ class _PurchaseItemRow extends StatefulWidget {
   const _PurchaseItemRow({
     super.key,
     required this.item,
-    required this.nodes,
     required this.isLastRow,
     required this.rowIndex,
     this.isLocked = false,
@@ -1681,8 +1704,10 @@ class _PurchaseItemRow extends StatefulWidget {
     required this.sellPriceControllers,
     required this.purchasePriceControllers,
     required this.costPriceControllers,
+    required this.productFocusRegistry,
+    this.onFocusRowProduct,
+    this.onAddNewRowAndFocus,
     required this.onDelete,
-    this.onFocusNewRow,
     required this.onQtyChanged,
     required this.onBatchChanged,
     required this.onPurchasePriceChanged,
@@ -1706,16 +1731,33 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _batchController;
   late TextEditingController _purchasePriceController;
 
+  // Focus nodes belong to the row, not the parent invoice screen.
+  // ListView.builder can therefore create/dispose them with the visible row.
+  late final FocusNode _productFocusNode;
+  late final FocusNode _qtyFocusNode;
+  late final FocusNode _batchFocusNode;
+  late final FocusNode _unitPriceFocusNode;
+  late final FocusNode _localAmountFocusNode;
+  late final FocusNode _sellPriceFocusNode;
 
   bool _isUpdating = false;
   bool _isEditingLocalAmount = false;
   Timer? _amountDebounce;
   double? _lastExchangeRate;
   bool _isUpdatingFromBloc = false;
+  bool _storageAutoSelected = false;
 
   @override
   void initState() {
     super.initState();
+
+    _productFocusNode = FocusNode();
+    _qtyFocusNode = FocusNode();
+    _batchFocusNode = FocusNode();
+    _unitPriceFocusNode = FocusNode();
+    _localAmountFocusNode = FocusNode();
+    _sellPriceFocusNode = FocusNode();
+
     _productController = TextEditingController(text: widget.item.productName);
     _headerProductController = TextEditingController(text: widget.item.productName);
     _storageController = TextEditingController(text: widget.item.storageName);
@@ -1755,6 +1797,17 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     widget.batchControllers[widget.item.rowId] = _batchController;
     widget.purchasePriceControllers[widget.item.rowId] = _purchasePriceController;
     widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
+    widget.productFocusRegistry[widget.item.rowId] = _productFocusNode;
+
+    // New/empty rows own their focus. This replaces the parent scan over all
+    // invoice items and only runs for the row that is actually mounted.
+    if (widget.isLastRow && widget.item.productId.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _productFocusNode.canRequestFocus) {
+          _productFocusNode.requestFocus();
+        }
+      });
+    }
   }
 
   // Helper method to get local amount text
@@ -2023,8 +2076,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                                     _productController.clear();
                                     _headerProductController.clear();
                                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                                      if (mounted && widget.nodes.isNotEmpty && widget.nodes[0].canRequestFocus) {
-                                        widget.nodes[0].requestFocus();
+                                      if (mounted && _productFocusNode.canRequestFocus) {
+                                        _productFocusNode.requestFocus();
                                       }
                                     });
                                   },
@@ -2130,9 +2183,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
       // Update the purchase price controller directly
       final priceController = _purchasePriceController;
-
       final newPriceText = newPurPrice.toAmount();
-
       if (priceController.text != newPriceText) {
         priceController.text = newPriceText;
       }
@@ -2210,6 +2261,10 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
 
       // Update storage display
+      if (widget.item.storageId == 0 && oldWidget.item.storageId != 0) {
+        _storageAutoSelected = false;
+      }
+
       if (widget.item.storageName != oldWidget.item.storageName) {
         if (_storageController.text != widget.item.storageName) {
           final text = widget.item.storageName;
@@ -2269,6 +2324,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     widget.batchControllers.remove(widget.item.rowId);
     widget.purchasePriceControllers.remove(widget.item.rowId);
     widget.sellPriceControllers.remove(widget.item.rowId);
+    if (identical(widget.productFocusRegistry[widget.item.rowId], _productFocusNode)) {
+      widget.productFocusRegistry.remove(widget.item.rowId);
+    }
 
     // Dispose controllers owned by this row.
     _productController.dispose();
@@ -2282,123 +2340,79 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     _purchasePriceController.dispose();
     _sellPriceController.dispose();
 
+    _productFocusNode.dispose();
+    _qtyFocusNode.dispose();
+    _batchFocusNode.dispose();
+    _unitPriceFocusNode.dispose();
+    _localAmountFocusNode.dispose();
+    _sellPriceFocusNode.dispose();
+
     super.dispose();
   }
 
-  void focusNext(int currentIndex) {
-    final visibility = context.read<SettingsVisibleBloc>().state;
-    final isWholeSale = visibility.isWholeSale;
-    final needsLocalConversion = _needsLocalConversion(context);
-
-    int nextIndex;
-    if (isWholeSale) {
-      if (needsLocalConversion) {
-        // Product, Qty, Batch, UnitPrice, LocalAmount, SellPrice, Storage
-        switch (currentIndex) {
-          case 0: nextIndex = 1; break;
-          case 1: nextIndex = 2; break;
-          case 2: nextIndex = 3; break;
-          case 3: nextIndex = 4; break;
-          case 4: nextIndex = 5; break;
-          case 5: nextIndex = 6; break;
-          default: nextIndex = currentIndex + 1;
-        }
-      } else {
-        // Product, Qty, Batch, UnitPrice, SellPrice, Storage
-        switch (currentIndex) {
-          case 0: nextIndex = 1; break;
-          case 1: nextIndex = 2; break;
-          case 2: nextIndex = 3; break;
-          case 3: nextIndex = 4; break;
-          case 4: nextIndex = 5; break;
-          default: nextIndex = currentIndex + 1;
-        }
+  void _requestFocus(FocusNode node) {
+    Future.delayed(const Duration(milliseconds: 40), () {
+      if (mounted && node.canRequestFocus) {
+        node.requestFocus();
       }
-    } else {
-      if (needsLocalConversion) {
-        // Product, Qty, UnitPrice, LocalAmount, SellPrice, Storage
-        switch (currentIndex) {
-          case 0: nextIndex = 1; break;
-          case 1: nextIndex = 2; break;
-          case 2: nextIndex = 3; break;
-          case 3: nextIndex = 4; break;
-          case 4: nextIndex = 5; break;
-          default: nextIndex = currentIndex + 1;
-        }
-      } else {
-        // Product, Qty, UnitPrice, SellPrice, Storage
-        switch (currentIndex) {
-          case 0: nextIndex = 1; break;
-          case 1: nextIndex = 2; break;
-          case 2: nextIndex = 3; break;
-          case 3: nextIndex = 4; break;
-          default: nextIndex = currentIndex + 1;
-        }
-      }
-    }
-
-    if (nextIndex < widget.nodes.length) {
-      final nextNode = widget.nodes[nextIndex];
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (nextNode.canRequestFocus) {
-          nextNode.requestFocus();
-        }
-      });
-    }
+    });
   }
 
-  FocusNode? safeNode(int virtualIndex) {
+  void focusNextField(FocusNode currentNode) {
     final visibility = context.read<SettingsVisibleBloc>().state;
     final isWholeSale = visibility.isWholeSale;
     final needsLocalConversion = _needsLocalConversion(context);
 
-    if (isWholeSale) {
-      if (needsLocalConversion) {
-        // Map virtual indices to actual node indices (7 fields)
-        const nodeMap = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6};
-        final nodeIndex = nodeMap[virtualIndex];
-        if (nodeIndex != null && nodeIndex < widget.nodes.length) {
-          return widget.nodes[nodeIndex];
-        }
-      } else {
-        // Map virtual indices to actual node indices (6 fields)
-        const nodeMap = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5};
-        final nodeIndex = nodeMap[virtualIndex];
-        if (nodeIndex != null && nodeIndex < widget.nodes.length) {
-          return widget.nodes[nodeIndex];
-        }
-      }
-    } else {
-      if (needsLocalConversion) {
-        // Map virtual indices to actual node indices (6 fields)
-        const nodeMap = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5};
-        final nodeIndex = nodeMap[virtualIndex];
-        if (nodeIndex != null && nodeIndex < widget.nodes.length) {
-          return widget.nodes[nodeIndex];
-        }
-      } else {
-        // Map virtual indices to actual node indices (5 fields)
-        const nodeMap = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4};
-        final nodeIndex = nodeMap[virtualIndex];
-        if (nodeIndex != null && nodeIndex < widget.nodes.length) {
-          return widget.nodes[nodeIndex];
-        }
-      }
+    if (identical(currentNode, _productFocusNode)) {
+      _requestFocus(_qtyFocusNode);
+      return;
     }
-    return null;
+
+    if (identical(currentNode, _qtyFocusNode)) {
+      if (isWholeSale) {
+        _requestFocus(_batchFocusNode);
+      } else {
+        _requestFocus(_unitPriceFocusNode);
+      }
+      return;
+    }
+
+    if (identical(currentNode, _batchFocusNode)) {
+      _requestFocus(_unitPriceFocusNode);
+      return;
+    }
+
+    if (identical(currentNode, _unitPriceFocusNode)) {
+      if (needsLocalConversion) {
+        _requestFocus(_localAmountFocusNode);
+      } else {
+        _requestFocus(_sellPriceFocusNode);
+      }
+      return;
+    }
+
+    if (identical(currentNode, _localAmountFocusNode)) {
+      _requestFocus(_sellPriceFocusNode);
+      return;
+    }
+
+    if (identical(currentNode, _sellPriceFocusNode)) {
+      if (widget.isLastRow) {
+        _addNewRowAndFocus();
+      } else {
+        widget.onFocusRowProduct?.call(widget.rowIndex + 1);
+      }
+      return;
+    }
   }
 
   void _addNewRowAndFocus() {
+    if (widget.onAddNewRowAndFocus != null) {
+      widget.onAddNewRowAndFocus!();
+      return;
+    }
+
     context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (mounted) {
-        final state = context.read<PurchaseInvoiceBloc>().state;
-        if (state is PurchaseInvoiceLoaded) {
-          final newRowIndex = state.items.length - 1;
-          widget.onFocusNewRow?.call(newRowIndex);
-        }
-      }
-    });
   }
 
   String _getBaseCurrency() {
@@ -2467,16 +2481,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   child: ProductsSearchField(
                     controller: _productController,
                     headerSearchController: _headerProductController,
-                    focusNode: safeNode(0),
+                    focusNode: _productFocusNode,
                     bloc: context.read<ProductsBloc>(),
                     onProductSelected: (product) {
                       if (product != null) {
                         _addProduct(product);
                         Future.delayed(const Duration(milliseconds: 100), () {
                           if (mounted) {
-                            final qtyNode = safeNode(1);
-                            if (qtyNode != null && qtyNode.canRequestFocus) {
-                              qtyNode.requestFocus();
+                            if (_qtyFocusNode.canRequestFocus) {
+                              _qtyFocusNode.requestFocus();
                             }
                           }
                         });
@@ -2485,9 +2498,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     onSubmitted: () {
                       Future.delayed(const Duration(milliseconds: 50), () {
                         if (mounted && widget.item.productId.isNotEmpty) {
-                          final qtyNode = safeNode(1);
-                          if (qtyNode != null && qtyNode.canRequestFocus) {
-                            qtyNode.requestFocus();
+                          if (_qtyFocusNode.canRequestFocus) {
+                            _qtyFocusNode.requestFocus();
                           }
                         }
                       });
@@ -2503,7 +2515,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   width: 100,
                   child: TextField(
                     controller: qtyController,
-                    focusNode: safeNode(1),
+                    focusNode: _qtyFocusNode,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
@@ -2515,7 +2527,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       final qty = int.tryParse(value) ?? 0;
                       widget.onQtyChanged(widget.item.rowId, qty);
                     },
-                    onSubmitted: (_) => focusNext(1),
+                    onSubmitted: (_) => focusNextField(_qtyFocusNode),
                   ),
                 ),
 
@@ -2524,7 +2536,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     width: 100,
                     child: TextField(
                       controller: batchController,
-                      focusNode: safeNode(2),
+                      focusNode: _batchFocusNode,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         hintText: locale.batchTitle,
@@ -2539,7 +2551,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                         }
                         widget.onBatchChanged(widget.item.rowId, effectiveBatch);
                       },
-                      onSubmitted: (_) => focusNext(2),
+                      onSubmitted: (_) => focusNextField(_batchFocusNode),
                     ),
                   ),
                   SizedBox(
@@ -2560,7 +2572,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   width: 150,
                   child: TextField(
                     controller: priceController,
-                    focusNode: safeNode(isWholeSale ? 3 : 2),
+                    focusNode: _unitPriceFocusNode,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,6}')),
@@ -2571,7 +2583,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       isDense: true,
                     ),
                     onChanged: _onBaseAmountChanged,
-                    onSubmitted: (_) => focusNext(isWholeSale ? 3 : 2),
+                    onSubmitted: (_) => focusNextField(_unitPriceFocusNode),
                   ),
                 ),
 
@@ -2581,7 +2593,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     width: 150,
                     child: TextField(
                       controller: _localAmountController,
-                      focusNode: safeNode(isWholeSale ? 4 : 3),
+                      focusNode: _localAmountFocusNode,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -2596,7 +2608,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                         fontWeight: FontWeight.w500,
                       ),
                       onChanged: _onLocalAmountChanged,
-                      onSubmitted: (_) => focusNext(isWholeSale ? 4 : 3),
+                      onSubmitted: (_) => focusNextField(_localAmountFocusNode),
                     ),
                   ),
 
@@ -2605,11 +2617,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   width: 150,
                   child: TextField(
                     controller: _sellPriceController,
-                    focusNode: safeNode(
-                        isWholeSale
-                            ? (needsLocalConversion ? 5 : 4)
-                            : (needsLocalConversion ? 4 : 3)
-                    ),
+                    focusNode: _sellPriceFocusNode,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -2623,15 +2631,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       _updateSellPriceFromAmount();
                     },
                     onSubmitted: (_) {
-                      if (widget.isLastRow) {
-                        _addNewRowAndFocus();
-                      } else {
-                        focusNext(
-                            isWholeSale
-                                ? (needsLocalConversion ? 5 : 4)
-                                : (needsLocalConversion ? 4 : 3)
-                        );
-                      }
+                      focusNextField(_sellPriceFocusNode);
                     },
                   ),
                 ),
@@ -2665,29 +2665,27 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       return true;
                     },
                     builder: (context, state) {
-                      final storageFocus = safeNode(
-                          isWholeSale
-                              ? (needsLocalConversion ? 6 : 5)
-                              : (needsLocalConversion ? 5 : 4)
-                      );
-
                       if (state is StorageLoadedState &&
                           state.storage.isNotEmpty &&
-                          widget.item.storageId == 0) {
+                          widget.item.storageId == 0 &&
+                          !_storageAutoSelected) {
+                        _storageAutoSelected = true;
                         WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
                           final first = state.storage.first;
                           widget.onStorageSelected(
                             widget.item.rowId,
                             first.stgId!,
                             first.stgName ?? '',
                           );
-                          _storageController.text = first.stgName ?? '';
+                          if (_storageController.text != (first.stgName ?? '')) {
+                            _storageController.text = first.stgName ?? '';
+                          }
                         });
                       }
 
                       return GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
                         title: "",
-                        focusNode: storageFocus,
                         controller: _storageController,
                         hintText: locale.storage,
                         bloc: context.read<StorageBloc>(),
@@ -2712,11 +2710,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                             storage.stgName ?? '',
                           );
                           _storageController.text = storage.stgName ?? '';
-                          if (widget.isLastRow) {
-                            _addNewRowAndFocus();
-                          } else {
-                            focusNext(0);
-                          }
                         },
                       );
                     },
