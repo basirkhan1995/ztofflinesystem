@@ -243,6 +243,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           final current = purState is PurchaseInvoiceSaving ? purState : (purState as PurchaseInvoiceLoaded);
           accountCcy = current.toCurrency;
         }
+      _clearAllControllers();
       if (widget.orderId != null) {
         _isEditMode = true;
         purchaseBloc.add(LoadPurchaseInvoiceForEditEvent(
@@ -252,44 +253,34 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       } else {
         purchaseBloc.add(InitializePurchaseInvoiceEvent());
       }
-      _clearAllControllers();
     });
   }
 
   @override
   void dispose() {
-    _clearAllControllers();
     for (final row in _rowFocusNodes) {
       for (final node in row) {
         node.dispose();
       }
     }
+    _rowFocusNodes.clear();
+
     _supplierFocusNode.dispose();
     _accountFocusNode.dispose();
+
     _accountController.dispose();
     _personController.dispose();
     _xRefController.dispose();
     _remark.dispose();
     _exchangeRateController.dispose();
 
-    for (final controller in _purchasePriceControllers.values) {
-      controller.dispose();
-    }
-    for (final controller in _costPriceControllers.values) {
-      controller.dispose();
-    }
-    for (final controller in _sellPriceControllers.values) {
-      controller.dispose();
-    }
-    for (final controller in _qtyControllers.values) {
-      controller.dispose();
-    }
-    for (final controller in _batchControllers.values) {
-      controller.dispose();
-    }
-    for (final controller in _localeAmountControllers.values) {
-      controller.dispose();
-    }
+    _purchasePriceControllers.clear();
+    _costPriceControllers.clear();
+    _sellPriceControllers.clear();
+    _qtyControllers.clear();
+    _batchControllers.clear();
+    _localeAmountControllers.clear();
+
     super.dispose();
   }
 
@@ -302,33 +293,25 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _remark.clear();
     _exchangeRateController.clear();
 
-    _purchasePriceControllers.clear();
-    _costPriceControllers.clear();
-    _sellPriceControllers.clear();
-    _qtyControllers.clear();
-    _batchControllers.clear();
-    _localeAmountControllers.clear();
-
     for (final row in _rowFocusNodes) {
       for (final node in row) {
         node.unfocus();
       }
     }
-    _rowFocusNodes.clear();
   }
 
   void _resetForm() {
     _clearAllControllers();
+
     _shouldAutoFocusProduct = true;
-    context.read<PurchaseInvoiceBloc>().add(ResetPurchaseInvoiceEvent());
-    _rowFocusNodes.clear();
-    _purchasePriceControllers.clear();
-    _qtyControllers.clear();
-    _batchControllers.clear();
-    _sellPriceControllers.clear();
-    _localeAmountControllers.clear();
-    _costPriceControllers.clear();
-    context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
+
+    context.read<PurchaseInvoiceBloc>().add(
+      ResetPurchaseInvoiceEvent(),
+    );
+
+    context.read<PurchaseInvoiceBloc>().add(
+      InitializePurchaseInvoiceEvent(),
+    );
   }
 
   @override
@@ -858,6 +841,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                     return _buildItemRow(
                                       item: item,
                                       nodes: nodes,
+                                      rowIndex: index,
                                       isLastRow: isLastRow,
                                       context: context,
                                     );
@@ -949,12 +933,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     required PurchaseInvoiceItem item,
     required List<FocusNode> nodes,
     required bool isLastRow,
-
+    required int rowIndex,
   }) {
-    final rowIndex = _rowFocusNodes.indexOf(nodes);
     final isLocked = widget.orderId != null;
 
     return _PurchaseItemRow(
+      key: ValueKey(item.rowId),
       item: item,
       nodes: nodes,
       isLastRow: isLastRow,
@@ -969,8 +953,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       purchasePriceControllers: _purchasePriceControllers,
       costPriceControllers: _costPriceControllers,
       onDelete: (rowId) {
-        _purchasePriceControllers.remove(rowId);
-        _qtyControllers.remove(rowId);
         context.read<PurchaseInvoiceBloc>().add(RemovePurchaseItemEvent(rowId));
       },
       onQtyChanged: (rowId, qty) {
@@ -1688,6 +1670,7 @@ class _PurchaseItemRow extends StatefulWidget {
   final Function(String, String, String, String) onProductSelected;
 
   const _PurchaseItemRow({
+    super.key,
     required this.item,
     required this.nodes,
     required this.isLastRow,
@@ -1719,6 +1702,10 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _productController;
   late TextEditingController _headerProductController;
 
+  late TextEditingController _qtyController;
+  late TextEditingController _batchController;
+  late TextEditingController _purchasePriceController;
+
 
   bool _isUpdating = false;
   bool _isEditingLocalAmount = false;
@@ -1731,20 +1718,43 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     super.initState();
     _productController = TextEditingController(text: widget.item.productName);
     _headerProductController = TextEditingController(text: widget.item.productName);
+    _storageController = TextEditingController(text: widget.item.storageName);
+    _localAmountController = TextEditingController(text: _getLocalAmountText());
+
+    _qtyController = TextEditingController(
+      text: widget.item.qty > 0
+          ? widget.item.qty.toString()
+          : '',
+    );
+
+    _batchController = TextEditingController(
+      text: widget.item.stkBatch > 0
+          ? widget.item.stkBatch.toString()
+          : '1',
+    );
+
+    _purchasePriceController = TextEditingController(
+      text: widget.item.purPrice != null &&
+          widget.item.purPrice! > 0
+          ? widget.item.purPrice!.toAmount()
+          : '',
+    );
     _landedPriceController = TextEditingController(
       text: widget.item.landedPrice != null && widget.item.landedPrice! > 0
           ? widget.item.landedPrice!.toAmount()
           : '',
     );
-    _storageController = TextEditingController(text: widget.item.storageName);
-    _localAmountController = TextEditingController(text: _getLocalAmountText());
+
     _lastExchangeRate = _getCurrentExchangeRate();
 
-// ✅ Initialize sell price controller
-    _sellPriceController = TextEditingController();
+    // Initialize sell price controller
     _initializeSellPriceController();
-    widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
 
+    // Register controllers in parent maps.
+    widget.qtyControllers[widget.item.rowId] = _qtyController;
+    widget.batchControllers[widget.item.rowId] = _batchController;
+    widget.purchasePriceControllers[widget.item.rowId] = _purchasePriceController;
+    widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
   }
 
   // Helper method to get local amount text
@@ -2074,28 +2084,16 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   }
 
   void _initializeSellPriceController() {
-    final existingController = widget.sellPriceControllers[widget.item.rowId];
+    final sellPrice = widget.item.sellPrice;
 
-    if (existingController != null) {
-      _sellPriceController = existingController;
-    } else {
-      _sellPriceController = TextEditingController();
-      widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
-    }
+    _sellPriceController = TextEditingController(
+      text: sellPrice != null && sellPrice > 0
+          ? sellPrice.toAmount()
+          : '',
+    );
 
-    // ✅ Check sellPriceAmountOriginal first
-    if (widget.item.sellPriceAmountOriginal != null &&
-        widget.item.sellPriceAmountOriginal! > 0) {
-      _sellPriceController.text = widget.item.sellPriceAmountOriginal!.toAmount();
-    }
-    // ✅ sellPrice is the actual amount, not a percentage!
-    else if (widget.item.sellPrice != null &&
-        widget.item.sellPrice! > 0) {
-      _sellPriceController.text = widget.item.sellPrice!.toAmount();
-      widget.item.sellPriceAmountOriginal = widget.item.sellPrice;
-    } else {
-      _sellPriceController.text = '';
-    }
+    widget.sellPriceControllers[widget.item.rowId] =
+        _sellPriceController;
   }
 
   double? _getCurrentExchangeRate() {
@@ -2131,12 +2129,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       final newPurPrice = localAmount / exchangeRate;
 
       // Update the purchase price controller directly
-      final priceController = widget.purchasePriceControllers[widget.item.rowId];
-      if (priceController != null) {
-        final newPriceText = newPurPrice.toAmount();
-        if (priceController.text != newPriceText) {
-          priceController.text = newPriceText;
-        }
+      final priceController = _purchasePriceController;
+
+      final newPriceText = newPurPrice.toAmount();
+
+      if (priceController.text != newPriceText) {
+        priceController.text = newPriceText;
       }
 
       // Update through callback
@@ -2187,8 +2185,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
     _isUpdating = false;
   }
-
-
 
   @override
   void didUpdateWidget(covariant _PurchaseItemRow oldWidget) {
@@ -2242,8 +2238,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
       if (widget.item.purPrice != oldWidget.item.purPrice) {
 
-        final priceController = widget.purchasePriceControllers[widget.item.rowId];
-        if (priceController != null && widget.item.purPrice != null) {
+        final priceController = _purchasePriceController;
+        if (widget.item.purPrice != null) {
           final newPriceText = widget.item.purPrice!.toAmount();
           if (priceController.text != newPriceText) {
             _isUpdatingFromBloc = true;
@@ -2267,12 +2263,25 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   @override
   void dispose() {
     _amountDebounce?.cancel();
+
+    // Remove references from parent maps.
+    widget.qtyControllers.remove(widget.item.rowId);
+    widget.batchControllers.remove(widget.item.rowId);
+    widget.purchasePriceControllers.remove(widget.item.rowId);
+    widget.sellPriceControllers.remove(widget.item.rowId);
+
+    // Dispose controllers owned by this row.
     _productController.dispose();
     _headerProductController.dispose();
     _landedPriceController.dispose();
     _storageController.dispose();
     _localAmountController.dispose();
+
+    _qtyController.dispose();
+    _batchController.dispose();
+    _purchasePriceController.dispose();
     _sellPriceController.dispose();
+
     super.dispose();
   }
 
@@ -2430,28 +2439,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final isWholeSale = visibility.isWholeSale;
     final needsLocalConversion = _needsLocalConversion(context);
 
-    final qtyController = widget.qtyControllers.putIfAbsent(
-      widget.item.rowId,
-          () => TextEditingController(
-        text: widget.item.qty > 0 ? widget.item.qty.toString() : '',
-      ),
-    );
-
-    final batchController = widget.batchControllers.putIfAbsent(
-      widget.item.rowId,
-          () => TextEditingController(
-        text: widget.item.stkBatch > 0 ? widget.item.stkBatch.toString() : '1',
-      ),
-    );
-
-    final priceController = widget.purchasePriceControllers.putIfAbsent(
-      widget.item.rowId,
-          () => TextEditingController(
-        text: widget.item.purPrice != null && widget.item.purPrice! > 0
-            ? widget.item.purPrice!.toAmount()
-            : '',
-      ),
-    );
+    final qtyController = _qtyController;
+    final batchController = _batchController;
+    final priceController = _purchasePriceController;
 
     return RepaintBoundary(
       child: Column(
