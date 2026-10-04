@@ -479,7 +479,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 ),
                 const SizedBox(width: 5),
                 ZOutlineButton(
-                  width: 100,
                   isActive: true,
                   icon: Icons.add_shopping_cart_rounded,
                   onPressed: () {
@@ -559,6 +558,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               child: ZSearchField(
                 controller: searchController,
                 hint: tr.search,
+                compactMode: true,
                 title: '',
                 end: searchController.text.isNotEmpty
                     ? InkWell(
@@ -583,13 +583,13 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               ),
             ),
             ZOutlineButton(
-              width: 110,
+              height: 47,
               icon: Icons.refresh,
               onPressed: onRefresh,
               label: Text(tr.refresh),
             ),
             ZOutlineButton(
-              width: 110,
+              height: 47,
               isActive: true,
               leading: _isUploadingExcel
                   ? const Icon(Icons.hourglass_top, size: 18, color: Colors.white)
@@ -603,7 +603,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               label: Text(tr.excelTitle),
             ),
             ZOutlineButton(
-              width: 110,
+              height: 47,
               isActive: true,
               icon: Icons.add_shopping_cart_rounded,
               onPressed: () {
@@ -1069,10 +1069,9 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             decoration: BoxDecoration(
-              color: index.isEven
-                  ? color.surfaceContainerHighest.withValues(alpha: .22)
+              color: index.isOdd
+                  ? color.surfaceContainerHighest.withValues(alpha: .3)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(5),
             ),
             child: Row(
               children: [
@@ -1100,6 +1099,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     product.proName ?? '',
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w500,
+                      fontSize: 16
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

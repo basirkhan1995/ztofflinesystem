@@ -71,6 +71,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     on<LoadProductsEvent>((event, emit) async{
       emit(ProductsLoadingState());
       try{
+        await Future.delayed(Duration(milliseconds: 500));
         final products = await _repo.getProduct(input: event.input);
         emit(ProductsLoadedState(products));
       }catch(e){
