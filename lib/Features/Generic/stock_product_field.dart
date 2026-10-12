@@ -662,7 +662,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
                                               Icon(
-                                                widget.headerSearchController!.text.isEmpty
+                                                _currentSearchQuery.isEmpty
                                                     ? Icons.add_shopping_cart_rounded
                                                     : Icons.remove_shopping_cart_outlined,
                                                 size: 68,
@@ -670,7 +670,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                               ),
                                               const SizedBox(height: 12),
                                               Text(
-                                                widget.headerSearchController!.text.isEmpty
+                                                _currentSearchQuery.isEmpty
                                                     ? tr.searchProducts
                                                     : widget.noResultsText,
                                                 textAlign: TextAlign.center,
