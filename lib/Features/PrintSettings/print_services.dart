@@ -8,12 +8,17 @@ import 'package:zaitoonpro/Features/PrintSettings/report_model.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 
+class _ArtelColors {
+  static const pw.PdfColor primary      = pw.PdfColor.fromInt(0xFF2E7D32); // green 800
+}
+
 abstract class PrintServices {
 
   static late pw.Font _englishRegular;
   static late pw.Font _englishBold;
   static late pw.Font _persianRegular;
   static late pw.Font _persianBold;
+
 
   // Initialize fonts
   static Future<void> initializeFonts() async {
@@ -192,8 +197,8 @@ abstract class PrintServices {
                   /// ✅ Logo ABOVE name
                   if (logoImage != null)
                     pw.Container(
-                      width: 90,
-                      height: 90,
+                      width: 100,
+                      height: 100,
                       child: pw.Image(logoImage, fit: pw.BoxFit.contain),
                     ),
 
@@ -341,7 +346,16 @@ abstract class PrintServices {
           ],
         ),
         pw.SizedBox(height: 5),
-        pw.Divider(height: 0),
+        /// Green accent bar above header
+        pw.Container(
+          height: 3,
+          width: double.infinity,
+          decoration: pw.BoxDecoration(
+            color: _ArtelColors.primary,
+            borderRadius: pw.BorderRadius.circular(1),
+          ),
+        ),
+        pw.SizedBox(height: 6),
       ],
     );
   }
@@ -677,9 +691,9 @@ abstract class PrintServices {
         "fa": "ورودی‌های بستانکار"
       },
       "invoiceAmount": {
-        "en": "Receivable Amount",
+        "en": "Invoice Amount",
         "ar": "پاتی وړ مقدار",
-        "fa": "الباقی مبلغ بل"
+        "fa": "مبلغ بل"
       },
       "noDebitEntries": {
         "en": "No debit entries",
@@ -1525,9 +1539,9 @@ abstract class PrintServices {
         'ar': 'مركبة',
       },
       'customer': {
-        'en': 'Customer',
-        'fa': 'مشتری',
-        'ar': 'پیرودونکی',
+        'en': 'Customer name',
+        'fa': 'نام مشتری',
+        'ar': 'پیرودونکی نوم',
       },
       'addressAndPhone': {
         'en': 'Address & Phone: ',

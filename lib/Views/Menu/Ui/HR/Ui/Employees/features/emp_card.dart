@@ -57,7 +57,7 @@ class ZCard extends StatefulWidget {
     this.status,
     this.onTap,
     this.hoverable = true,
-    this.borderRadius = 8,
+    this.borderRadius = 15,
     this.padding = const EdgeInsets.all(12),
     this.showDivider = true,
     this.imageBuilder,
@@ -164,13 +164,6 @@ class _ZCardState extends State<ZCard> {
                 /// Push the footer to the bottom of the card
                 const Spacer(),
 
-                /// Divider only shows if there is at least one visible info row
-                // if (widget.showDivider && hasInfo)...[
-                //   const Divider(height: 1),
-                //   SizedBox(height: 5)
-                // ],
-
-
                 /// Footer: info pills or the empty state, always at the bottom
                 if (hasInfo)
                   _buildInfoItemsSection(context, visibleInfoItems)
@@ -218,12 +211,14 @@ class _ZCardState extends State<ZCard> {
                     widget.title,
                     style: Theme.of(context)
                         .textTheme
-                        .titleSmall
+                        .titleMedium
                         ?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      height: 1.25,
                     ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                     textAlign: TextAlign.center,
                   ),
                   if (widget.subtitle != null &&
@@ -234,8 +229,9 @@ class _ZCardState extends State<ZCard> {
                       style: Theme.of(context)
                           .textTheme
                           .bodySmall
-                          ?.copyWith(fontSize: 10),
+                          ?.copyWith(fontSize: 10.5),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -256,6 +252,10 @@ class _ZCardState extends State<ZCard> {
     );
   }
 
+  // ============================================================
+  //  OPTIMIZED BOTTOM SECTION (less vertical space)
+  // ============================================================
+
   Widget _buildInfoItemsSection(
       BuildContext context,
       List<InfoItem> items,
@@ -269,58 +269,38 @@ class _ZCardState extends State<ZCard> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (int i = 0; i < items.length; i++) ...[
-          if (i != 0) const SizedBox(height: 6),
+          if (i != 0) const SizedBox(height: 3),
           _buildInfoPill(items[i], context),
         ],
       ],
     );
   }
 
-  /// A single polished info row: tinted icon badge + text,
-  /// wrapped in a subtle rounded container.
+  /// Compact info row: small icon + text. No circular badge, tighter padding.
   Widget _buildInfoPill(InfoItem item, BuildContext context) {
     final theme = Theme.of(context);
     final accent = item.iconColor ?? theme.colorScheme.primary;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: .06),
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(
-          color: accent.withValues(alpha: .12),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          /// Small circular tinted badge behind the icon
-          Container(
-            width: 18,
-            height: 18,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: .15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              item.icon,
-              size: 12,
-              color: accent,
-            ),
-          ),
-          const SizedBox(width: 7),
-          Flexible(
+          Icon(item.icon, size: 11, color: accent),
+          const SizedBox(width: 6),
+          Expanded(
             child: Text(
               item.text,
               style: item.textStyle ??
                   theme.textTheme.bodySmall?.copyWith(
-                    fontSize: 11.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
               overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
+              maxLines: 1,
             ),
           ),
         ],
@@ -328,7 +308,7 @@ class _ZCardState extends State<ZCard> {
     );
   }
 
-  /// Compact styled empty state pinned to the bottom of the card.
+  /// Compact empty state pinned to the bottom of the card.
   Widget _buildEmptyInfo(BuildContext context) {
     if (widget.emptyInfoWidget != null) {
       return widget.emptyInfoWidget!;
@@ -340,28 +320,23 @@ class _ZCardState extends State<ZCard> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       decoration: BoxDecoration(
         color: color.surfaceContainerHighest.withValues(alpha: .35),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: color.outline.withValues(alpha: .15),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.info_outline_rounded, size: 13, color: muted),
-          const SizedBox(width: 6),
+          Icon(Icons.info_outline_rounded, size: 12, color: muted),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               AppLocalizations.of(context)!.noData,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: 11,
+                fontSize: 10.5,
                 color: muted,
               ),
             ),
@@ -370,6 +345,8 @@ class _ZCardState extends State<ZCard> {
       ),
     );
   }
+
+  // ============================================================
 
   Widget _buildStatusBadge(InfoStatus status) {
     return Container(

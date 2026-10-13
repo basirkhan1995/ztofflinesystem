@@ -121,7 +121,44 @@ class InvoicePrintService extends PrintServices {
   bool _isRollFormat(pw.PdfPageFormat format) {
     return format.width == pw.PdfPageFormat.roll80.width;
   }
+  /// ============================================================
+  ///  SALE INVOICE — TERMS & CONDITIONS MESSAGE (Persian only)
+  /// ============================================================
+  pw.Widget _saleTermsMessage({required String language}) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
 
+      child: pw.Row(
+        crossAxisAlignment: language == "en"? pw.CrossAxisAlignment.end : pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: language == "en"? pw.CrossAxisAlignment.end : pw.CrossAxisAlignment.start,
+              children: [
+                zText(
+                  text: "شرایط و مقررات",
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                  color: _ArtelColors.primaryDark,
+                ),
+                pw.SizedBox(height: 3),
+                zText(text: "همه وسایل الکترونیکی دارای ورنتی و گرنتی مطابق لایحه کمپنی میباشد.", fontSize: 8),
+                pw.SizedBox(height: 2),
+                zText(text: "سند هذا بدون مهر و امضاء اعتبار ندارد.", fontSize: 8),
+                pw.SizedBox(height: 2),
+                zText(text: "جنس فروخته شده واپس گرفته نمیشود.", fontSize: 8),
+              ],
+            ),
+          ),
+          pw.SizedBox(width: 6),
+          pw.Container(
+            width: 2,
+            color: _ArtelColors.primary,
+          ),
+        ],
+      ),
+    );
+  }
   Future<pw.Document> _generateRoll80Invoice({
     required String invoiceType,
     required String invoiceNumber,
@@ -902,9 +939,9 @@ class InvoicePrintService extends PrintServices {
     double? extraCharges,
   }) async {
     final document = pw.Document();
-    final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
-    final Uint8List imageBytes = imageData.buffer.asUint8List();
-    final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+    // final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
+    // final Uint8List imageBytes = imageData.buffer.asUint8List();
+    // final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
 
     if (_isRollFormat(pageFormat)) {
       return _generateRoll80Invoice(
@@ -975,24 +1012,43 @@ class InvoicePrintService extends PrintServices {
             report: company,
           ),
           pw.SizedBox(height: 10),
-          _paymentSummary(
-            language: language,
-            grandTotal: grandTotal,
-            cashPayment: cashPayment,
-            creditAmount: creditAmount,
-            account: account,
-            isSale: isSale,
-            items: items,
-            remark: remark,
-            totalLocalAmount: totalLocalAmount,
-            localCurrency: localCurrency,
-            baseCurrency: currency,
-            exchangeRate: exchangeRate,
-            subtotal: subtotal,
-            totalItemDiscount: totalItemDiscount,
-            generalDiscount: generalDiscount,
-            extraCharges: extraCharges,
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // ✅ Summary stays on the LEFT
+              pw.Expanded(
+                flex: 1,
+                child: _paymentSummary(
+                  language: language,
+                  grandTotal: grandTotal,
+                  cashPayment: cashPayment,
+                  creditAmount: creditAmount,
+                  account: account,
+                  isSale: isSale,
+                  items: items,
+                  remark: remark,
+                  totalLocalAmount: totalLocalAmount,
+                  localCurrency: localCurrency,
+                  baseCurrency: currency,
+                  exchangeRate: exchangeRate,
+                  subtotal: subtotal,
+                  totalItemDiscount: totalItemDiscount,
+                  generalDiscount: generalDiscount,
+                  extraCharges: extraCharges,
+                ),
+              ),
+
+              // ✅ Terms message only for SALE invoices on normal pages
+              if (isSale) ...[
+                pw.SizedBox(width: 15),
+                pw.Expanded(
+                  flex: 1,
+                  child: _saleTermsMessage(language: language),
+                ),
+              ],
+            ],
           ),
+
           pw.Spacer(),
           if (remark != null && remark.isNotEmpty) ...[
             pw.Row(
@@ -1013,12 +1069,12 @@ class InvoicePrintService extends PrintServices {
           localCurrency: localCurrency,
           exchangeRate: exchangeRate,
         ),
-        footer: (pw.Context context) => footer(
-          report: company,
-          context: context,
-          language: language,
-          logoImage: logoImage,
-        ),
+        // footer: (pw.Context context) => footer(
+        //   report: company,
+        //   context: context,
+        //   language: language,
+        //   logoImage: logoImage,
+        // ),
       ),
     );
     return document;
@@ -1040,16 +1096,6 @@ class InvoicePrintService extends PrintServices {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        /// Green accent bar above header
-        pw.Container(
-          height: 3,
-          width: double.infinity,
-          decoration: pw.BoxDecoration(
-            color: _ArtelColors.primary,
-            borderRadius: pw.BorderRadius.circular(1),
-          ),
-        ),
-        pw.SizedBox(height: 6),
         companyHeader,
         pw.SizedBox(height: 4),
         _invoiceHeaderWidget(
@@ -1448,9 +1494,14 @@ class InvoicePrintService extends PrintServices {
         children: [
           for (int i = 0; i < items.length; i++)
             pw.TableRow(
-              decoration: i.isOdd
-                  ? pw.BoxDecoration(color: _ArtelColors.stripeLight)
-                  : null,
+              decoration: pw.BoxDecoration(
+                border: pw.Border(
+                  bottom: pw.BorderSide(
+                    color: _ArtelColors.divider,
+                    width: 1,
+                  ),
+                ),
+              ),
               verticalAlignment: pw.TableCellVerticalAlignment.middle,
               children: isRtl
                   ? _buildRtlRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report)
@@ -1576,7 +1627,7 @@ class InvoicePrintService extends PrintServices {
                 ),
               ),
               pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   zText(
                     text: invoiceDate?.shamsiDateFormatted ?? DateTime.now().shamsiDateFormatted,
@@ -1586,7 +1637,7 @@ class InvoicePrintService extends PrintServices {
                   ),
                   verticalDivider(height: 10, width: 1, color: _ArtelColors.divider),
                   zText(
-                    text: invoiceDate?.toDateTime ?? DateTime.now().toDateTime,
+                    text: invoiceDate?.toFormattedDate() ?? DateTime.now().toFormattedDate(),
                     fontSize: 9,
                     fontWeight: pw.FontWeight.bold,
                     color: _ArtelColors.accentText,
@@ -1635,7 +1686,6 @@ class InvoicePrintService extends PrintServices {
             zText(
               text: accountInfo,
               fontSize: 10,
-              color: pw.PdfColors.grey600,
             ),
           ],
         ],
