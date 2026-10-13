@@ -1,8 +1,10 @@
 import 'dart:convert';
 
-BalanceSheetModel balanceSheetModelFromMap(String str) => BalanceSheetModel.fromMap(json.decode(str));
+BalanceSheetModel balanceSheetModelFromMap(String str) =>
+    BalanceSheetModel.fromMap(json.decode(str));
 
-String balanceSheetModelToMap(BalanceSheetModel data) => json.encode(data.toMap());
+String balanceSheetModelToMap(BalanceSheetModel data) =>
+    json.encode(data.toMap());
 
 class BalanceSheetModel {
   final Assets? assets;
@@ -22,10 +24,13 @@ class BalanceSheetModel {
         liability: liability ?? this.liability,
       );
 
-  factory BalanceSheetModel.fromMap(Map<String, dynamic> json) => BalanceSheetModel(
-    assets: json["Assets"] == null ? null : Assets.fromMap(json["Assets"]),
-    liability: json["Liability"] == null ? null : Liability.fromMap(json["Liability"]),
-  );
+  factory BalanceSheetModel.fromMap(Map<String, dynamic> json) =>
+      BalanceSheetModel(
+        assets: json["Assets"] == null ? null : Assets.fromMap(json["Assets"]),
+        liability: json["Liability"] == null
+            ? null
+            : Liability.fromMap(json["Liability"]),
+      );
 
   Map<String, dynamic> toMap() => {
     "Assets": assets?.toMap(),
@@ -56,15 +61,30 @@ class Assets {
       );
 
   factory Assets.fromMap(Map<String, dynamic> json) => Assets(
-    currentAsset: json["Current Asset"] == null ? [] : List<AssetItem>.from(json["Current Asset"]!.map((x) => AssetItem.fromMap(x))),
-    fixedAsset: json["Fixed Asset"] == null ? [] : List<AssetItem>.from(json["Fixed Asset"]!.map((x) => AssetItem.fromMap(x))),
-    intangibleAsset: json["Intangible Asset"] == null ? [] : List<AssetItem>.from(json["Intangible Asset"]!.map((x) => AssetItem.fromMap(x))),
+    currentAsset: json["Current Asset"] == null
+        ? []
+        : List<AssetItem>.from(
+        json["Current Asset"]!.map((x) => AssetItem.fromMap(x))),
+    fixedAsset: json["Fixed Asset"] == null
+        ? []
+        : List<AssetItem>.from(
+        json["Fixed Asset"]!.map((x) => AssetItem.fromMap(x))),
+    intangibleAsset: json["Intangible Asset"] == null
+        ? []
+        : List<AssetItem>.from(
+        json["Intangible Asset"]!.map((x) => AssetItem.fromMap(x))),
   );
 
   Map<String, dynamic> toMap() => {
-    "Current Asset": currentAsset == null ? [] : List<dynamic>.from(currentAsset!.map((x) => x.toMap())),
-    "Fixed Asset": fixedAsset == null ? [] : List<dynamic>.from(fixedAsset!.map((x) => x.toMap())),
-    "Intangible Asset": intangibleAsset == null ? [] : List<dynamic>.from(intangibleAsset!.map((x) => x.toMap())),
+    "Current Asset": currentAsset == null
+        ? []
+        : List<dynamic>.from(currentAsset!.map((x) => x.toMap())),
+    "Fixed Asset": fixedAsset == null
+        ? []
+        : List<dynamic>.from(fixedAsset!.map((x) => x.toMap())),
+    "Intangible Asset": intangibleAsset == null
+        ? []
+        : List<dynamic>.from(intangibleAsset!.map((x) => x.toMap())),
   };
 }
 
@@ -103,21 +123,52 @@ class Liability {
       );
 
   factory Liability.fromMap(Map<String, dynamic> json) => Liability(
-    currentLiability: json["Current Liability"] == null ? [] : List<AssetItem>.from(json["Current Liability"]!.map((x) => AssetItem.fromMap(x))),
-    longTermLiability: json["Long-Term Liability"] == null ? [] : List<dynamic>.from(json["Long-Term Liability"]!.map((x) => x)),
-    ownersEquity: json["Owner’s Equity"] == null ? [] : List<AssetItem>.from(json["Owner’s Equity"]!.map((x) => AssetItem.fromMap(x))),
-    shareholders: json["Shareholders"] == null ? [] : List<dynamic>.from(json["Shareholders"]!.map((x) => x)),
-    stakeholders: json["Stakeholders"] == null ? [] : List<AssetItem>.from(json["Stakeholders"]!.map((x) => AssetItem.fromMap(x))),
-    netProfit: json["Net Profit"] == null ? [] : List<AssetItem>.from(json["Net Profit"]!.map((x) => AssetItem.fromMap(x))),
+    currentLiability: json["Current Liability"] == null
+        ? []
+        : List<AssetItem>.from(
+        json["Current Liability"]!.map((x) => AssetItem.fromMap(x))),
+    longTermLiability: json["Long-Term Liability"] == null
+        ? []
+        : List<dynamic>.from(
+        json["Long-Term Liability"]!.map((x) => x)),
+    // ✅ FIXED: straight apostrophe to match JSON key
+    ownersEquity: json["Owner's Equity"] == null
+        ? []
+        : List<AssetItem>.from(
+        json["Owner's Equity"]!.map((x) => AssetItem.fromMap(x))),
+    shareholders: json["Shareholders"] == null
+        ? []
+        : List<dynamic>.from(json["Shareholders"]!.map((x) => x)),
+    stakeholders: json["Stakeholders"] == null
+        ? []
+        : List<AssetItem>.from(
+        json["Stakeholders"]!.map((x) => AssetItem.fromMap(x))),
+    netProfit: json["Net Profit"] == null
+        ? []
+        : List<AssetItem>.from(
+        json["Net Profit"]!.map((x) => AssetItem.fromMap(x))),
   );
 
   Map<String, dynamic> toMap() => {
-    "Current Liability": currentLiability == null ? [] : List<dynamic>.from(currentLiability!.map((x) => x.toMap())),
-    "Long-Term Liability": longTermLiability == null ? [] : List<dynamic>.from(longTermLiability!.map((x) => x)),
-    "Owner’s Equity": ownersEquity == null ? [] : List<dynamic>.from(ownersEquity!.map((x) => x.toMap())),
-    "Shareholders": shareholders == null ? [] : List<dynamic>.from(shareholders!.map((x) => x)),
-    "Stakeholders": stakeholders == null ? [] : List<dynamic>.from(stakeholders!.map((x) => x.toMap())),
-    "Net Profit": netProfit == null ? [] : List<dynamic>.from(netProfit!.map((x) => x.toMap())),
+    "Current Liability": currentLiability == null
+        ? []
+        : List<dynamic>.from(currentLiability!.map((x) => x.toMap())),
+    "Long-Term Liability": longTermLiability == null
+        ? []
+        : List<dynamic>.from(longTermLiability!.map((x) => x)),
+    // ✅ FIXED: straight apostrophe to match JSON key
+    "Owner's Equity": ownersEquity == null
+        ? []
+        : List<dynamic>.from(ownersEquity!.map((x) => x.toMap())),
+    "Shareholders": shareholders == null
+        ? []
+        : List<dynamic>.from(shareholders!.map((x) => x)),
+    "Stakeholders": stakeholders == null
+        ? []
+        : List<dynamic>.from(stakeholders!.map((x) => x.toMap())),
+    "Net Profit": netProfit == null
+        ? []
+        : List<dynamic>.from(netProfit!.map((x) => x.toMap())),
   };
 }
 

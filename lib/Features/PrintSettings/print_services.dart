@@ -192,8 +192,8 @@ abstract class PrintServices {
                   /// ✅ Logo ABOVE name
                   if (logoImage != null)
                     pw.Container(
-                      width: 60,
-                      height: 60,
+                      width: 90,
+                      height: 90,
                       child: pw.Image(logoImage, fit: pw.BoxFit.contain),
                     ),
 
@@ -461,20 +461,21 @@ abstract class PrintServices {
   pw.Widget verticalDivider({
     required double height,
     required double width,
+    pw.PdfColor? color,
   }) {
     return pw.Container(
       height: height,
       width: width,
-      color: PdfColors.grey300,
+      color: color ?? PdfColors.grey300,
       margin: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 8),
     );
   }
 
-  pw.Widget horizontalDivider({double? width}) {
+  pw.Widget horizontalDivider({double? width, pw.PdfColor? color}) {
     return pw.Container(
       height: 0.5,
       width: width ?? double.infinity,
-      color: PdfColors.grey300,
+      color: color ?? PdfColors.grey300,
       margin: const pw.EdgeInsets.symmetric(vertical: 1, horizontal: 0),
     );
   }
