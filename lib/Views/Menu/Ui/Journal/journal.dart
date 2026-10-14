@@ -415,7 +415,7 @@ class _MobileViewState extends State<_MobileView> {
 
                           ZTextFieldEntitled(
                             isRequired: true,
-                            keyboardInputType:
+                            keyboardType:
                             TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -447,7 +447,7 @@ class _MobileViewState extends State<_MobileView> {
                             title: locale.amount,
                           ),
                           ZTextFieldEntitled(
-                            keyboardInputType: TextInputType.multiline,
+                            keyboardType: TextInputType.multiline,
                             controller: narration,
                             title: locale.narration,
                           ),
@@ -679,7 +679,7 @@ class _MobileViewState extends State<_MobileView> {
 
                             ZTextFieldEntitled(
                               isRequired: true,
-                              keyboardInputType: TextInputType.numberWithOptions(
+                              keyboardType: TextInputType.numberWithOptions(
                                 decimal: true,
                               ),
                               inputFormat: [
@@ -710,7 +710,7 @@ class _MobileViewState extends State<_MobileView> {
                               title: locale.amount,
                             ),
                             ZTextFieldEntitled(
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               controller: narration,
                               title: locale.narration,
                             ),
@@ -915,7 +915,7 @@ class _MobileViewState extends State<_MobileView> {
 
                             ZTextFieldEntitled(
                               isRequired: true,
-                              keyboardInputType: TextInputType.numberWithOptions(
+                              keyboardType: TextInputType.numberWithOptions(
                                 decimal: true,
                               ),
                               inputFormat: [
@@ -946,7 +946,7 @@ class _MobileViewState extends State<_MobileView> {
                               title: locale.amount,
                             ),
                             ZTextFieldEntitled(
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               controller: narration,
                               title: locale.narration,
                             ),
@@ -1161,7 +1161,7 @@ class _MobileViewState extends State<_MobileView> {
                             ZTextFieldEntitled(
                               isRequired: true,
                               // onSubmit: (_)=> onSubmit(),
-                              keyboardInputType: TextInputType.numberWithOptions(
+                              keyboardType: TextInputType.numberWithOptions(
                                 decimal: true,
                               ),
                               inputFormat: [
@@ -1192,7 +1192,7 @@ class _MobileViewState extends State<_MobileView> {
                               title: locale.amount,
                             ),
                             ZTextFieldEntitled(
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               controller: narration,
                               title: locale.narration,
                             ),
@@ -1845,7 +1845,7 @@ class _MobileViewState extends State<_MobileView> {
 
                           ZTextFieldEntitled(
                             isRequired: true,
-                            keyboardInputType:
+                            keyboardType:
                             TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -1877,7 +1877,7 @@ class _MobileViewState extends State<_MobileView> {
                             title: tr.amount,
                           ),
                           ZTextFieldEntitled(
-                            keyboardInputType: TextInputType.multiline,
+                            keyboardType: TextInputType.multiline,
                             controller: narration,
                             title: tr.narration,
                           ),
@@ -2785,7 +2785,7 @@ class _DesktopViewState extends State<_DesktopView> {
 
                           ZTextFieldEntitled(
                             isRequired: true,
-                            keyboardInputType:
+                            keyboardType:
                             TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -2817,7 +2817,7 @@ class _DesktopViewState extends State<_DesktopView> {
                             title: locale.amount,
                           ),
                           ZTextFieldEntitled(
-                            keyboardInputType: TextInputType.multiline,
+                            keyboardType: TextInputType.multiline,
                             controller: narration,
                             title: locale.narration,
                           ),
@@ -3057,7 +3057,7 @@ class _DesktopViewState extends State<_DesktopView> {
                             ),
 
                             ZTextFieldEntitled(
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               controller: narration,
                               title: locale.narration,
                             ),
@@ -3271,7 +3271,7 @@ class _DesktopViewState extends State<_DesktopView> {
                             ),
 
                             ZTextFieldEntitled(
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               controller: narration,
                               title: locale.narration,
                             ),
@@ -3493,7 +3493,7 @@ class _DesktopViewState extends State<_DesktopView> {
                               isRequired: true,
                             ),
                             ZTextFieldEntitled(
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               controller: narration,
                               title: locale.narration,
                             ),
@@ -4146,7 +4146,7 @@ class _DesktopViewState extends State<_DesktopView> {
 
                           ZTextFieldEntitled(
                             isRequired: true,
-                            keyboardInputType:
+                            keyboardType:
                             TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -4178,7 +4178,7 @@ class _DesktopViewState extends State<_DesktopView> {
                             title: tr.amount,
                           ),
                           ZTextFieldEntitled(
-                            keyboardInputType: TextInputType.multiline,
+                            keyboardType: TextInputType.multiline,
                             controller: narration,
                             title: tr.narration,
                           ),

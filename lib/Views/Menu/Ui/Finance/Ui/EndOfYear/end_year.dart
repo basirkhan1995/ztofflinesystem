@@ -405,7 +405,7 @@ class _DesktopState extends State<_Desktop> {
                     ],
                     ZTextFieldEntitled(
                       controller: remark,
-                      keyboardInputType: TextInputType.multiline,
+                      keyboardType: TextInputType.multiline,
                       title: tr.remark,
                     ),
                   ],

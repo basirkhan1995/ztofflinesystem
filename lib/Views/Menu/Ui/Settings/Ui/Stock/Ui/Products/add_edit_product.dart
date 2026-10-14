@@ -859,7 +859,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                 child: ZTextFieldEntitled(
                                   title: tr.details,
                                   controller: details,
-                                  keyboardInputType: TextInputType.multiline,
+                                  keyboardType: TextInputType.multiline,
                                   maxLength: 100,
                                 ),
                               ),
@@ -1005,7 +1005,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                         ZTextFieldEntitled(
                           title: tr.details,
                           controller: details,
-                          keyboardInputType: TextInputType.multiline,
+                          keyboardType: TextInputType.multiline,
                           maxLength: 100,
                         ),
                         if (state is SingleProductLoadedState && state.product.batches != null && state.product.batches!.isNotEmpty)
@@ -1213,7 +1213,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                           ZTextFieldEntitled(
                                             title: tr.details,
                                             controller: details,
-                                            keyboardInputType: TextInputType.multiline,
+                                            keyboardType: TextInputType.multiline,
                                             maxLength: 100,
                                           ),
                                         ],
@@ -1315,7 +1315,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                                   title: tr.salePrice,
                                                   hint: "قیمت پیش فرض",
                                                   controller: salePricePercentage,
-                                                  keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
+                                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                                   inputFormat: [
                                                     FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                                                   ],

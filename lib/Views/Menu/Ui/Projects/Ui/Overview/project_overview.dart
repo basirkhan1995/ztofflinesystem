@@ -148,7 +148,7 @@ class _MobileContentState extends State<_MobileContent> {
                       isEnabled: isPending,
                       isRequired: true,
                       controller: projectDetails,
-                      keyboardInputType: TextInputType.multiline,
+                      keyboardType: TextInputType.multiline,
                       title: tr.details,
                       validator: (e) {
                         if (e.isEmpty) {
@@ -632,7 +632,7 @@ class _TabletContentState extends State<_TabletContent> {
                       isEnabled: isPending,
                       isRequired: true,
                       controller: projectDetails,
-                      keyboardInputType: TextInputType.multiline,
+                      keyboardType: TextInputType.multiline,
                       title: tr.details,
                       validator: (e) {
                         if (e.isEmpty) {
@@ -1047,7 +1047,7 @@ class _DesktopState extends State<_Desktop> {
                         isEnabled: isPending,
                         isRequired: true,
                         controller: projectDetails,
-                        keyboardInputType: TextInputType.multiline,
+                        keyboardType: TextInputType.multiline,
                         title: tr.details,
                         validator: (e) {
                           if (e.isEmpty) {

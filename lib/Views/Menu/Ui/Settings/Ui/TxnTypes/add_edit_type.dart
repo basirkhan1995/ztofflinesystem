@@ -109,7 +109,7 @@ class _DesktopState extends State<_Desktop> {
             ZTextFieldEntitled(
               title: tr.details,
               controller: trnDetails,
-              keyboardInputType: TextInputType.multiline,
+              keyboardType: TextInputType.multiline,
               isRequired: true,
               validator: (value) {
                 if (value.isEmpty) {

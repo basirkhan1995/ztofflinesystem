@@ -29,6 +29,9 @@ class IndividualAddEditView extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// MOBILE
+// ============================================================================
 class _Mobile extends StatefulWidget {
   final IndividualsModel? model;
 
@@ -37,6 +40,7 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
+
 class _MobileState extends State<_Mobile> {
   final TextEditingController firstName = TextEditingController();
   final TextEditingController lastName = TextEditingController();
@@ -49,6 +53,18 @@ class _MobileState extends State<_Mobile> {
   final TextEditingController nationalId = TextEditingController();
   final TextEditingController zipCode = TextEditingController();
   Uint8List? selectedImageBytes;
+
+  // Focus nodes
+  final FocusNode firstNameFocus = FocusNode();
+  final FocusNode lastNameFocus = FocusNode();
+  final FocusNode emailFocus = FocusNode();
+  final FocusNode phoneFocus = FocusNode();
+  final FocusNode nationalIdFocus = FocusNode();
+  final FocusNode addressFocus = FocusNode();
+  final FocusNode cityFocus = FocusNode();
+  final FocusNode provinceFocus = FocusNode();
+  final FocusNode countryFocus = FocusNode();
+  final FocusNode zipCodeFocus = FocusNode();
 
   String gender = "Male";
   int mailingValue = 1;
@@ -79,6 +95,11 @@ class _MobileState extends State<_Mobile> {
       mailingValue = m.addMailing ?? 1;
       isMailingAddress = mailingValue == 1;
     }
+
+    // Auto-focus first field when the form opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) firstNameFocus.requestFocus();
+    });
   }
 
   @override
@@ -94,8 +115,23 @@ class _MobileState extends State<_Mobile> {
     phone.dispose();
     email.dispose();
     _scrollController.dispose();
+
+    firstNameFocus.dispose();
+    lastNameFocus.dispose();
+    emailFocus.dispose();
+    phoneFocus.dispose();
+    nationalIdFocus.dispose();
+    addressFocus.dispose();
+    cityFocus.dispose();
+    provinceFocus.dispose();
+    countryFocus.dispose();
+    zipCodeFocus.dispose();
+
     super.dispose();
   }
+
+  // Helper to move focus
+  void _next(FocusNode node) => node.requestFocus();
 
   @override
   Widget build(BuildContext context) {
@@ -182,9 +218,12 @@ class _MobileState extends State<_Mobile> {
                     children: [
                       ZTextFieldEntitled(
                         controller: firstName,
+                        focusNode: firstNameFocus,
+                        autofocus: true,
+                        textInputAction: TextInputAction.next,
                         isRequired: true,
                         title: locale.firstName,
-                        onSubmit: (_) => onSubmit(),
+                        onFieldSubmitted: (_) => _next(lastNameFocus),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return locale.required(locale.firstName);
@@ -195,9 +234,11 @@ class _MobileState extends State<_Mobile> {
                       const SizedBox(height: 12),
                       ZTextFieldEntitled(
                         controller: lastName,
+                        focusNode: lastNameFocus,
+                        textInputAction: TextInputAction.next,
                         isRequired: true,
                         title: locale.lastName,
-                        onSubmit: (_) => onSubmit(),
+                        onFieldSubmitted: (_) => _next(emailFocus),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return locale.required(locale.lastName);
@@ -212,13 +253,16 @@ class _MobileState extends State<_Mobile> {
                   // Email
                   ZTextFieldEntitled(
                     controller: email,
+                    focusNode: emailFocus,
+                    textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.emailAddress,
                     validator: (value) => Utils.validateEmail(email: value, context: context),
                     title: locale.email,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => _next(phoneFocus),
                   ),
                   const SizedBox(height: 16),
 
-                  // Gender Selection with better mobile UX
+                  // Gender Selection
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: Column(
@@ -372,18 +416,24 @@ class _MobileState extends State<_Mobile> {
                       Expanded(
                         child: ZTextFieldEntitled(
                           controller: phone,
+                          focusNode: phoneFocus,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: TextInputType.phone,
                           inputFormat: [FilteringTextInputFormatter.digitsOnly],
                           title: locale.cellNumber,
-                          onSubmit: (_) => onSubmit(),
+                          onFieldSubmitted: (_) => _next(nationalIdFocus),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: ZTextFieldEntitled(
                           controller: nationalId,
+                          focusNode: nationalIdFocus,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: TextInputType.number,
                           inputFormat: [FilteringTextInputFormatter.digitsOnly],
                           title: locale.nationalId,
-                          onSubmit: (_) => onSubmit(),
+                          onFieldSubmitted: (_) => _next(addressFocus),
                         ),
                       ),
                     ],
@@ -397,8 +447,10 @@ class _MobileState extends State<_Mobile> {
                   // Address
                   ZTextFieldEntitled(
                     controller: address,
+                    focusNode: addressFocus,
+                    textInputAction: TextInputAction.next,
                     title: locale.address,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => _next(cityFocus),
                   ),
                   const SizedBox(height: 16),
 
@@ -408,16 +460,20 @@ class _MobileState extends State<_Mobile> {
                       Expanded(
                         child: ZTextFieldEntitled(
                           controller: city,
+                          focusNode: cityFocus,
+                          textInputAction: TextInputAction.next,
                           title: locale.city,
-                          onSubmit: (_) => onSubmit(),
+                          onFieldSubmitted: (_) => _next(provinceFocus),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: ZTextFieldEntitled(
                           controller: province,
+                          focusNode: provinceFocus,
+                          textInputAction: TextInputAction.next,
                           title: locale.province,
-                          onSubmit: (_) => onSubmit(),
+                          onFieldSubmitted: (_) => _next(countryFocus),
                         ),
                       ),
                     ],
@@ -431,8 +487,10 @@ class _MobileState extends State<_Mobile> {
                         flex: 5,
                         child: ZTextFieldEntitled(
                           controller: country,
+                          focusNode: countryFocus,
+                          textInputAction: TextInputAction.next,
                           title: locale.country,
-                          onSubmit: (_) => onSubmit(),
+                          onFieldSubmitted: (_) => _next(zipCodeFocus),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -440,9 +498,12 @@ class _MobileState extends State<_Mobile> {
                         flex: 2,
                         child: ZTextFieldEntitled(
                           controller: zipCode,
+                          focusNode: zipCodeFocus,
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.number,
                           title: locale.zipCode,
                           inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                          onSubmit: (_) => onSubmit(),
+                          onFieldSubmitted: (_) => onSubmit(),
                         ),
                       ),
                     ],
@@ -501,7 +562,7 @@ class _MobileState extends State<_Mobile> {
 
                   const SizedBox(height: 15),
 
-                  // Submit Button (full width for better mobile UX)
+                  // Submit Button
                   SizedBox(
                     width: double.infinity,
                     height: 45,
@@ -520,7 +581,6 @@ class _MobileState extends State<_Mobile> {
                           : Text(
                         isEdit ? locale.update : locale.create,
                       ),
-
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -622,6 +682,9 @@ class _MobileState extends State<_Mobile> {
   }
 }
 
+// ============================================================================
+// TABLET
+// ============================================================================
 class _Tablet extends StatefulWidget {
   final IndividualsModel? model;
 
@@ -630,6 +693,7 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
+
 class _TabletState extends State<_Tablet> {
   final TextEditingController firstName = TextEditingController();
   final TextEditingController lastName = TextEditingController();
@@ -643,6 +707,17 @@ class _TabletState extends State<_Tablet> {
   final TextEditingController zipCode = TextEditingController();
   Uint8List? selectedImageBytes;
 
+  final FocusNode firstNameFocus = FocusNode();
+  final FocusNode lastNameFocus = FocusNode();
+  final FocusNode emailFocus = FocusNode();
+  final FocusNode phoneFocus = FocusNode();
+  final FocusNode nationalIdFocus = FocusNode();
+  final FocusNode addressFocus = FocusNode();
+  final FocusNode cityFocus = FocusNode();
+  final FocusNode provinceFocus = FocusNode();
+  final FocusNode countryFocus = FocusNode();
+  final FocusNode zipCodeFocus = FocusNode();
+
   String gender = "Male";
   int mailingValue = 1;
   bool isMailingAddress = true;
@@ -653,7 +728,6 @@ class _TabletState extends State<_Tablet> {
   void initState() {
     super.initState();
 
-    // Pre-fill for edit mode
     if (widget.model != null) {
       final m = widget.model!;
       firstName.text = m.perName ?? "";
@@ -671,6 +745,10 @@ class _TabletState extends State<_Tablet> {
       mailingValue = m.addMailing ?? 1;
       isMailingAddress = mailingValue == 1;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) firstNameFocus.requestFocus();
+    });
   }
 
   @override
@@ -685,8 +763,22 @@ class _TabletState extends State<_Tablet> {
     lastName.dispose();
     phone.dispose();
     email.dispose();
+
+    firstNameFocus.dispose();
+    lastNameFocus.dispose();
+    emailFocus.dispose();
+    phoneFocus.dispose();
+    nationalIdFocus.dispose();
+    addressFocus.dispose();
+    cityFocus.dispose();
+    provinceFocus.dispose();
+    countryFocus.dispose();
+    zipCodeFocus.dispose();
+
     super.dispose();
   }
+
+  void _next(FocusNode node) => node.requestFocus();
 
   @override
   Widget build(BuildContext context) {
@@ -765,7 +857,6 @@ class _TabletState extends State<_Tablet> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Profile Image (for edit)
                           if (isEdit)
                             Center(
                               child: GestureDetector(
@@ -802,7 +893,7 @@ class _TabletState extends State<_Tablet> {
 
                           // Personal Info
                           Text(
-                           "personalInformation",
+                            "personalInformation",
                             style: theme.textTheme.titleMedium,
                           ),
                           const SizedBox(height: 12),
@@ -812,8 +903,12 @@ class _TabletState extends State<_Tablet> {
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: firstName,
+                                  focusNode: firstNameFocus,
+                                  autofocus: true,
+                                  textInputAction: TextInputAction.next,
                                   isRequired: true,
                                   title: locale.firstName,
+                                  onFieldSubmitted: (_) => _next(lastNameFocus),
                                   validator: (value) {
                                     if (value.isEmpty) {
                                       return locale.required(locale.firstName);
@@ -826,8 +921,11 @@ class _TabletState extends State<_Tablet> {
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: lastName,
+                                  focusNode: lastNameFocus,
+                                  textInputAction: TextInputAction.next,
                                   isRequired: true,
                                   title: locale.lastName,
+                                  onFieldSubmitted: (_) => _next(emailFocus),
                                   validator: (value) {
                                     if (value.isEmpty) {
                                       return locale.required(locale.lastName);
@@ -843,16 +941,19 @@ class _TabletState extends State<_Tablet> {
                           // Email
                           ZTextFieldEntitled(
                             controller: email,
+                            focusNode: emailFocus,
+                            textInputAction: TextInputAction.next,
+                            keyboardType: TextInputType.emailAddress,
                             validator: (value) => Utils.validateEmail(
                               email: value,
                               context: context,
                             ),
                             title: locale.email,
+                            onFieldSubmitted: (_) => _next(phoneFocus),
                           ),
                           const SizedBox(height: 12),
 
                           // Gender
-                          // Alternative using SegmentedButton (Material 3)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Column(
@@ -906,20 +1007,28 @@ class _TabletState extends State<_Tablet> {
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: phone,
+                                  focusNode: phoneFocus,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.phone,
                                   inputFormat: [
                                     FilteringTextInputFormatter.digitsOnly
                                   ],
                                   title: locale.cellNumber,
+                                  onFieldSubmitted: (_) => _next(nationalIdFocus),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: nationalId,
+                                  focusNode: nationalIdFocus,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.number,
                                   inputFormat: [
                                     FilteringTextInputFormatter.digitsOnly
                                   ],
                                   title: locale.nationalId,
+                                  onFieldSubmitted: (_) => _next(addressFocus),
                                 ),
                               ),
                             ],
@@ -935,7 +1044,10 @@ class _TabletState extends State<_Tablet> {
 
                           ZTextFieldEntitled(
                             controller: address,
+                            focusNode: addressFocus,
+                            textInputAction: TextInputAction.next,
                             title: locale.address,
+                            onFieldSubmitted: (_) => _next(cityFocus),
                           ),
                           const SizedBox(height: 12),
 
@@ -944,14 +1056,20 @@ class _TabletState extends State<_Tablet> {
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: city,
+                                  focusNode: cityFocus,
+                                  textInputAction: TextInputAction.next,
                                   title: locale.city,
+                                  onFieldSubmitted: (_) => _next(provinceFocus),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: province,
+                                  focusNode: provinceFocus,
+                                  textInputAction: TextInputAction.next,
                                   title: locale.province,
+                                  onFieldSubmitted: (_) => _next(countryFocus),
                                 ),
                               ),
                             ],
@@ -964,7 +1082,10 @@ class _TabletState extends State<_Tablet> {
                                 flex: 5,
                                 child: ZTextFieldEntitled(
                                   controller: country,
+                                  focusNode: countryFocus,
+                                  textInputAction: TextInputAction.next,
                                   title: locale.country,
+                                  onFieldSubmitted: (_) => _next(zipCodeFocus),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -972,10 +1093,14 @@ class _TabletState extends State<_Tablet> {
                                 flex: 2,
                                 child: ZTextFieldEntitled(
                                   controller: zipCode,
+                                  focusNode: zipCodeFocus,
+                                  textInputAction: TextInputAction.done,
+                                  keyboardType: TextInputType.number,
                                   title: locale.zipCode,
                                   inputFormat: [
                                     FilteringTextInputFormatter.digitsOnly
                                   ],
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ),
                             ],
@@ -1066,6 +1191,9 @@ class _TabletState extends State<_Tablet> {
   }
 }
 
+// ============================================================================
+// DESKTOP
+// ============================================================================
 class _Desktop extends StatefulWidget {
   final IndividualsModel? model;
 
@@ -1074,6 +1202,7 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
+
 class _DesktopState extends State<_Desktop> {
   final TextEditingController firstName = TextEditingController();
   final TextEditingController lastName = TextEditingController();
@@ -1087,6 +1216,17 @@ class _DesktopState extends State<_Desktop> {
   final TextEditingController zipCode = TextEditingController();
   Uint8List? selectedImageBytes;
 
+  final FocusNode firstNameFocus = FocusNode();
+  final FocusNode lastNameFocus = FocusNode();
+  final FocusNode emailFocus = FocusNode();
+  final FocusNode phoneFocus = FocusNode();
+  final FocusNode nationalIdFocus = FocusNode();
+  final FocusNode addressFocus = FocusNode();
+  final FocusNode cityFocus = FocusNode();
+  final FocusNode provinceFocus = FocusNode();
+  final FocusNode countryFocus = FocusNode();
+  final FocusNode zipCodeFocus = FocusNode();
+
   String gender = "Male";
   int mailingValue = 1;
   bool isMailingAddress = true;
@@ -1097,7 +1237,6 @@ class _DesktopState extends State<_Desktop> {
   void initState() {
     super.initState();
 
-    // Pre-fill for edit mode
     if (widget.model != null) {
       final m = widget.model!;
       firstName.text = m.perName ?? "";
@@ -1115,6 +1254,10 @@ class _DesktopState extends State<_Desktop> {
       mailingValue = m.addMailing ?? 1;
       isMailingAddress = mailingValue == 1;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) firstNameFocus.requestFocus();
+    });
   }
 
   @override
@@ -1129,8 +1272,22 @@ class _DesktopState extends State<_Desktop> {
     lastName.dispose();
     phone.dispose();
     email.dispose();
+
+    firstNameFocus.dispose();
+    lastNameFocus.dispose();
+    emailFocus.dispose();
+    phoneFocus.dispose();
+    nationalIdFocus.dispose();
+    addressFocus.dispose();
+    cityFocus.dispose();
+    provinceFocus.dispose();
+    countryFocus.dispose();
+    zipCodeFocus.dispose();
+
     super.dispose();
   }
+
+  void _next(FocusNode node) => node.requestFocus();
 
   @override
   Widget build(BuildContext context) {
@@ -1163,10 +1320,20 @@ class _DesktopState extends State<_Desktop> {
             listener: (context, state) {
               if (state is IndividualSuccessState) {
                 Navigator.of(context).pop();
-              }if(state is IndividualErrorState){
-                ToastManager.show(context: context, title: locale.operationFailedTitle, message: state.message, type: ToastType.error);
-              }if(state is IndividualSuccessImageState){
-                ToastManager.show(context: context, title: locale.successTitle, message: locale.successMessage, type: ToastType.success);
+              }
+              if (state is IndividualErrorState) {
+                ToastManager.show(
+                    context: context,
+                    title: locale.operationFailedTitle,
+                    message: state.message,
+                    type: ToastType.error);
+              }
+              if (state is IndividualSuccessImageState) {
+                ToastManager.show(
+                    context: context,
+                    title: locale.successTitle,
+                    message: locale.successMessage,
+                    type: ToastType.success);
               }
             },
             builder: (context, state) {
@@ -1175,7 +1342,6 @@ class _DesktopState extends State<_Desktop> {
                   mainAxisSize: MainAxisSize.min,
                   spacing: 8,
                   children: [
-                    // Profile Image with Edit Badge (Circular, same as profile view)
                     if (isEdit)
                       Row(
                         children: [
@@ -1235,9 +1401,12 @@ class _DesktopState extends State<_Desktop> {
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: firstName,
+                            focusNode: firstNameFocus,
+                            autofocus: true,
+                            textInputAction: TextInputAction.next,
                             isRequired: true,
                             title: locale.firstName,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => _next(lastNameFocus),
                             validator: (value) {
                               if (value.isEmpty) {
                                 return locale.required(locale.firstName);
@@ -1249,19 +1418,24 @@ class _DesktopState extends State<_Desktop> {
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: lastName,
+                            focusNode: lastNameFocus,
+                            textInputAction: TextInputAction.next,
                             title: locale.lastName,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => _next(emailFocus),
                           ),
                         ),
                       ],
                     ),
-                
+
                     ZTextFieldEntitled(
                       controller: email,
+                      focusNode: emailFocus,
+                      textInputAction: TextInputAction.next,
+                      keyboardType: TextInputType.emailAddress,
                       validator: (value) =>
                           Utils.validateEmail(email: value, context: context),
                       title: locale.email,
-                      onSubmit: (_) => onSubmit(),
+                      onFieldSubmitted: (_) => _next(phoneFocus),
                     ),
                     Row(
                       spacing: 5,
@@ -1269,25 +1443,33 @@ class _DesktopState extends State<_Desktop> {
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: phone,
+                            focusNode: phoneFocus,
+                            textInputAction: TextInputAction.next,
+                            keyboardType: TextInputType.phone,
                             inputFormat: [FilteringTextInputFormatter.digitsOnly],
                             title: locale.cellNumber,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => _next(nationalIdFocus),
                           ),
                         ),
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: nationalId,
+                            focusNode: nationalIdFocus,
+                            textInputAction: TextInputAction.next,
+                            keyboardType: TextInputType.number,
                             inputFormat: [FilteringTextInputFormatter.digitsOnly],
                             title: locale.nationalId,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => _next(addressFocus),
                           ),
                         ),
                       ],
                     ),
                     ZTextFieldEntitled(
                       controller: address,
+                      focusNode: addressFocus,
+                      textInputAction: TextInputAction.next,
                       title: locale.address,
-                      onSubmit: (_) => onSubmit(),
+                      onFieldSubmitted: (_) => _next(cityFocus),
                     ),
                     Row(
                       spacing: 5,
@@ -1296,33 +1478,42 @@ class _DesktopState extends State<_Desktop> {
                           flex: 5,
                           child: ZTextFieldEntitled(
                             controller: city,
+                            focusNode: cityFocus,
+                            textInputAction: TextInputAction.next,
                             title: locale.city,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => _next(provinceFocus),
                           ),
                         ),
                         Expanded(
                           flex: 5,
                           child: ZTextFieldEntitled(
                             controller: province,
+                            focusNode: provinceFocus,
+                            textInputAction: TextInputAction.next,
                             title: locale.province,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => _next(countryFocus),
                           ),
                         ),
                         Expanded(
                           flex: 5,
                           child: ZTextFieldEntitled(
                             controller: country,
+                            focusNode: countryFocus,
+                            textInputAction: TextInputAction.next,
                             title: locale.country,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => _next(zipCodeFocus),
                           ),
                         ),
                         Expanded(
                           flex: 3,
                           child: ZTextFieldEntitled(
                             controller: zipCode,
+                            focusNode: zipCodeFocus,
+                            textInputAction: TextInputAction.done,
+                            keyboardType: TextInputType.number,
                             title: locale.zipCode,
                             inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => onSubmit(),
                           ),
                         ),
                       ],
@@ -1361,7 +1552,6 @@ class _DesktopState extends State<_Desktop> {
                                   });
                                 },
                                 showSelectedIcon: false,
-
                                 style: ButtonStyle(
                                   shape: WidgetStatePropertyAll(
                                     RoundedRectangleBorder(

@@ -18,17 +18,17 @@ class ZTextFieldEntitled extends StatelessWidget {
   final Color? infoColor;
   final Widget? end;
   final bool securePassword;
-  final TextInputAction? inputAction;
+  final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
-  final ValueChanged<String>? onSubmit;
+  final ValueChanged<String>? onFieldSubmitted;
   final FormFieldValidator? validator;
-  final TextInputType? keyboardInputType;
+  final TextInputType? keyboardType;
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final Widget? trailing;
   final double width;
   final bool? compactMode;
-  final bool autoFocus;
+  final bool autofocus;
   final int? maxLength;
   final List<TextInputFormatter>? inputFormat;
 
@@ -45,7 +45,7 @@ class ZTextFieldEntitled extends StatelessWidget {
     this.maxLength,
     this.infoColor,
     this.borderType = ZTextFieldBorderType.rounded,
-    this.autoFocus = true,
+    this.autofocus = true,
     this.compactMode,
     this.vertical,
     this.isEnabled = true,
@@ -56,13 +56,13 @@ class ZTextFieldEntitled extends StatelessWidget {
     this.icon,
     this.inputFormat,
     this.validator,
-    this.onSubmit,
+    this.onFieldSubmitted,
     this.controller,
     this.onChanged,
     this.width = .5,
     this.trailing,
-    this.keyboardInputType,
-    this.inputAction,
+    this.keyboardType,
+    this.textInputAction,
     this.suggestions,
   });
 
@@ -78,20 +78,20 @@ class ZTextFieldEntitled extends StatelessWidget {
           return TextFormField(
             readOnly: readOnly,
             focusNode: focus,
-            autofocus: autoFocus,
+            autofocus: autofocus,
             enabled: isEnabled,
             validator: validator,
             onChanged: onChanged,
-            onFieldSubmitted: onSubmit,
+            onFieldSubmitted: onFieldSubmitted,
             obscureText: securePassword,
             inputFormatters: inputFormat,
-            keyboardType: keyboardInputType,
+            keyboardType: keyboardType,
             controller: ctrl,
             maxLength: maxLength,
             maxLines:
-            keyboardInputType == TextInputType.multiline ? null : 1,
+            keyboardType == TextInputType.multiline ? null : 1,
             minLines:
-            keyboardInputType == TextInputType.multiline ? 3 : 1,
+            keyboardType == TextInputType.multiline ? 3 : 1,
             decoration: InputDecoration(
               fillColor: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: .3),
               hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: .03),

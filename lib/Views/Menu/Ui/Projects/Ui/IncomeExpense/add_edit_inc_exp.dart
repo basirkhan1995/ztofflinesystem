@@ -364,7 +364,7 @@ class _AddEditIncomeExpenseMobileState extends State<_AddEditIncomeExpenseMobile
                       ZTextFieldEntitled(
                         controller: _remarkController,
                         title: tr.remark,
-                        keyboardInputType: TextInputType.multiline,
+                        keyboardType: TextInputType.multiline,
                       ),
                     ],
                   ),
@@ -797,7 +797,7 @@ class _AddEditIncomeExpenseTabletState extends State<_AddEditIncomeExpenseTablet
                       ZTextFieldEntitled(
                         controller: _remarkController,
                         title: tr.remark,
-                        keyboardInputType: TextInputType.multiline,
+                        keyboardType: TextInputType.multiline,
                       ),
                     ],
                   ),
@@ -1229,7 +1229,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
             ZTextFieldEntitled(
               controller: _remarkController,
               title: tr.remark,
-              keyboardInputType: TextInputType.multiline,
+              keyboardType: TextInputType.multiline,
             ),
           ],
         ),

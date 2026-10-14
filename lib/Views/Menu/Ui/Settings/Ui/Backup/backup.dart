@@ -691,7 +691,7 @@ class _BackupContent extends StatelessWidget {
             ZTextFieldEntitled(
               controller: textController,
               title: tr.fileInfo,
-              onSubmit: (value) {
+              onFieldSubmitted: (value) {
                 if (value.isNotEmpty && value != currentName) {
                   final parentDir = file.parent.path;
                   final newPath = '$parentDir${Platform.pathSeparator}$value';

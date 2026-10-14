@@ -863,7 +863,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                           ),
                                         ],
                                         onChanged: _onExchangeRateChanged,
-                                        onSubmit: _onExchangeRateChanged,
+                                        onFieldSubmitted: _onExchangeRateChanged,
                                         end: isLoading
                                             ? const SizedBox(
                                           width: 20,

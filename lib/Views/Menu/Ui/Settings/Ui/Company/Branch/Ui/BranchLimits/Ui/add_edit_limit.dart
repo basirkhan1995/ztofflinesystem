@@ -251,8 +251,8 @@ class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
                                 children: [
                                   ZTextFieldEntitled(
                                     isRequired: true,
-                                    onSubmit: (_) => onSubmit(),
-                                    keyboardInputType: TextInputType.numberWithOptions(
+                                    onFieldSubmitted: (_) => onSubmit(),
+                                    keyboardType: TextInputType.numberWithOptions(
                                       decimal: true,
                                     ),
                                     inputFormat: [
@@ -414,8 +414,8 @@ class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
                       Expanded(
                         child: ZTextFieldEntitled(
                           isRequired: true,
-                          onSubmit: (_) => onSubmit(),
-                          keyboardInputType: TextInputType.numberWithOptions(
+                          onFieldSubmitted: (_) => onSubmit(),
+                          keyboardType: TextInputType.numberWithOptions(
                             decimal: true,
                           ),
                           inputFormat: [

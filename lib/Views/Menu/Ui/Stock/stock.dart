@@ -544,7 +544,7 @@ class _StockViewState extends State<StockView> {
               ZTextFieldEntitled(
                 inputFormat: [FilteringTextInputFormatter.digitsOnly],
                 icon: Icons.numbers,
-                onSubmit: (e) {},
+                onFieldSubmitted: (e) {},
                 controller: invController,
                 hint: tr.enterInvoiceNumber,
                 title: tr.orderId,

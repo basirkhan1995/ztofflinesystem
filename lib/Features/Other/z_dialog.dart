@@ -58,7 +58,7 @@ class _ZFormDialogState extends State<ZFormDialog> {
               actionsPadding: EdgeInsets.zero,
               content: Shortcuts(
                 shortcuts: {
-                  LogicalKeySet(LogicalKeyboardKey.enter): const ActivateIntent(),
+                  LogicalKeySet(LogicalKeyboardKey.f4): const ActivateIntent(),
                 },
                 child: Actions(
                   actions: {

@@ -783,7 +783,7 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
                           ZTextFieldEntitled(
                             readOnly: !isUpdateMode,
                             controller: comDetails,
-                            keyboardInputType: TextInputType.multiline,
+                            keyboardType: TextInputType.multiline,
                             title: locale.comDetails,
                           ),
                         ),

@@ -266,7 +266,7 @@ class _BaseProCatAddEditState extends State<_BaseProCatAddEdit> {
                               child: ZTextFieldEntitled(
                                 title: tr.details,
                                 controller: description,
-                                keyboardInputType: TextInputType.multiline,
+                                keyboardType: TextInputType.multiline,
                                 maxLength: 100,
                               ),
                             ),
@@ -404,7 +404,7 @@ class _BaseProCatAddEditState extends State<_BaseProCatAddEdit> {
                     ZTextFieldEntitled(
                       title: tr.details,
                       controller: description,
-                      keyboardInputType: TextInputType.multiline,
+                      keyboardType: TextInputType.multiline,
                       maxLength: 100,
                       isRequired: true,
                       validator: (value) {
@@ -532,7 +532,7 @@ class _BaseProCatAddEditState extends State<_BaseProCatAddEdit> {
                   ZTextFieldEntitled(
                     title: tr.details,
                     controller: description,
-                    keyboardInputType: TextInputType.multiline,
+                    keyboardType: TextInputType.multiline,
                     maxLength: 100,
                   ),
                   if (isEdit) const SizedBox(height: 12),

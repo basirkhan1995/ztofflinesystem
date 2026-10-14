@@ -154,7 +154,7 @@ class _DesktopState extends State<_Desktop> {
                         controller: findProjectById,
                         title: "",
                         hint: "Find project by ID",
-                        onSubmit: (e) {
+                        onFieldSubmitted: (e) {
                           context.read<ProjectsBloc>().add(
                             LoadProjectsEvent(
                               prjId: int.tryParse(findProjectById.text),

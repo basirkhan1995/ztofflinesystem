@@ -946,7 +946,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                           }
                         });
                       },
-                      onSubmit: (e) {
+                      onFieldSubmitted: (e) {
                         getInvoice(invoiceId: searchController.text.trim());
                       },
                       title: "",

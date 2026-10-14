@@ -728,7 +728,7 @@ class _DesktopState extends State<_Desktop> {
                     ZTextFieldEntitled(
                       controller: _emailController,
                       title: locale.emailOrUsrname,
-                      onSubmit: (_) => onSubmit(),
+                      onFieldSubmitted: (_) => onSubmit(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return locale.required(locale.emailOrUsrname);
@@ -744,7 +744,7 @@ class _DesktopState extends State<_Desktop> {
                       controller: _passwordController,
                       securePassword: isPasswordSecure,
                       title: locale.password,
-                      onSubmit: (_) => onSubmit(),
+                      onFieldSubmitted: (_) => onSubmit(),
                       trailing: IconButton(
                         onPressed: () {
                           setState(() {

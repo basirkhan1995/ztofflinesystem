@@ -429,7 +429,7 @@ class _MobileState extends State<_Mobile> {
                           // Salary
                           ZTextFieldEntitled(
                             isRequired: true,
-                            keyboardInputType:
+                            keyboardType:
                             TextInputType.numberWithOptions(decimal: true),
                             inputFormat: [
                               FilteringTextInputFormatter.allow(
@@ -476,7 +476,7 @@ class _MobileState extends State<_Mobile> {
                             validator: (value) => Utils.validateEmail(
                                 email: value, context: context),
                             title: locale.email,
-                            keyboardInputType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.emailAddress,
                           ),
                         ],
                       ),
@@ -898,7 +898,7 @@ class _DesktopState extends State<_Desktop> {
                     Expanded(
                       child: ZTextFieldEntitled(
                         isRequired: true,
-                        keyboardInputType: TextInputType.numberWithOptions(
+                        keyboardType: TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                         inputFormat: [

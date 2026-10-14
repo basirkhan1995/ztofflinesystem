@@ -153,7 +153,7 @@ class _MobileContentState extends State<_MobileContent> {
             ZTextFieldEntitled(
               isRequired: true,
               controller: projectDetails,
-              keyboardInputType: TextInputType.multiline,
+              keyboardType: TextInputType.multiline,
 
               title: tr.details,
               validator: (e) {
@@ -540,7 +540,7 @@ class _TabletContentState extends State<_TabletContent> {
                     ZTextFieldEntitled(
                       isRequired: true,
                       controller: projectDetails,
-                      keyboardInputType: TextInputType.multiline,
+                      keyboardType: TextInputType.multiline,
                       title: tr.details,
                       validator: (e) {
                         if (e.isEmpty) {
@@ -846,7 +846,7 @@ class _DesktopState extends State<_Desktop> {
             ZTextFieldEntitled(
               isRequired: true,
               controller: projectDetails,
-              keyboardInputType: TextInputType.multiline,
+              keyboardType: TextInputType.multiline,
               title: tr.details,
               validator: (e) {
                 if (e.isEmpty) {

@@ -257,7 +257,7 @@ class _MobileProjectTxnViewState extends State<_MobileProjectTxnView> {
                                 children: [
                                   ZTextFieldEntitled(
                                     isRequired: true,
-                                    keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                     inputFormat: [
                                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),
                                       SmartThousandsDecimalFormatter(),
@@ -278,7 +278,7 @@ class _MobileProjectTxnViewState extends State<_MobileProjectTxnView> {
                                   ),
                                   const SizedBox(height: 12),
                                   ZTextFieldEntitled(
-                                    keyboardInputType: TextInputType.multiline,
+                                    keyboardType: TextInputType.multiline,
                                     controller: narration,
                                     title: locale.narration,
                                   ),
@@ -824,7 +824,7 @@ class _DesktopState extends State<_Desktop> {
                             children: [
                               ZTextFieldEntitled(
                                 isRequired: true,
-                                keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 inputFormat: [
                                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),
                                   SmartThousandsDecimalFormatter(),
@@ -845,7 +845,7 @@ class _DesktopState extends State<_Desktop> {
                               ),
                               const SizedBox(height: 12),
                               ZTextFieldEntitled(
-                                keyboardInputType: TextInputType.multiline,
+                                keyboardType: TextInputType.multiline,
                                 controller: narration,
                                 title: locale.narration,
                               ),

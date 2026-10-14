@@ -574,7 +574,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               }
               return null;
             },
-            onSubmit: (e){
+            onFieldSubmitted: (e){
               if (formKeyIdentity.currentState!.validate()) {
                 context.read<ForgotPasswordBloc>().add(
                   RequestResetEvent(identity: identityController.text.trim()),

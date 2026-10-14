@@ -680,7 +680,7 @@ class _DesktopServerConnectState extends State<_DesktopServerConnect> {
             controller: ipController,
             isEnabled: !loading,
             onChanged: (_) => setState(() {}),
-            onSubmit: (e) {
+            onFieldSubmitted: (e) {
               if (!loading && ipController.text.trim().isNotEmpty) {
                 connect();
               }

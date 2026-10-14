@@ -100,8 +100,8 @@ class _DesktopState extends State<_Desktop> {
            ),
             ZTextFieldEntitled(
                 isRequired: true,
-                onSubmit: (_)=> onSubmit(),
-                keyboardInputType: TextInputType.numberWithOptions(
+                onFieldSubmitted: (_)=> onSubmit(),
+                keyboardType: TextInputType.numberWithOptions(
                     decimal: true),
                 inputFormat: [
                   FilteringTextInputFormatter.allow(

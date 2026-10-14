@@ -835,7 +835,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                             },
                                             compactMode: true,
                                             onChanged: _onExchangeRateChanged,
-                                            onSubmit: _onExchangeRateChanged,
+                                            onFieldSubmitted: _onExchangeRateChanged,
                                             trailing: isLoading ? Container(
                                               padding: EdgeInsets.all(2),
                                               width: 18,

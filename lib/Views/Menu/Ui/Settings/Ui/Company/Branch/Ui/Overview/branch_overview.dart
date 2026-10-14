@@ -185,7 +185,7 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                               controller: branchName,
                               isRequired: true,
                               title: locale.branchName,
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                               validator: (value) {
                                 if (value.isEmpty) {
                                   return locale.required(locale.branchName);
@@ -216,14 +216,14 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                   controller: phone,
                                   title: locale.mobile1,
                                   inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                                 const SizedBox(height: 12),
                                 ZTextFieldEntitled(
                                   controller: zipCode,
                                   title: locale.zipCode,
                                   inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ],
                             ),
@@ -249,19 +249,19 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                 ZTextFieldEntitled(
                                   controller: city,
                                   title: locale.city,
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                                 const SizedBox(height: 12),
                                 ZTextFieldEntitled(
                                   controller: province,
                                   title: locale.province,
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                                 const SizedBox(height: 12),
                                 ZTextFieldEntitled(
                                   controller: country,
                                   title: locale.country,
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ],
                             ),
@@ -283,10 +283,10 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                             ),
                             child: ZTextFieldEntitled(
                               controller: address,
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               maxLength: 100,
                               title: locale.address,
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -432,7 +432,7 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                             controller: branchName,
                             isRequired: true,
                             title: locale.branchName,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => onSubmit(),
                             validator: (value) {
                               if (value.isEmpty) {
                                 return locale.required(locale.branchName);
@@ -451,7 +451,7 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                   controller: phone,
                                   title: locale.mobile1,
                                   inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ),
                               Expanded(
@@ -460,7 +460,7 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                   controller: zipCode,
                                   title: locale.zipCode,
                                   inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ),
                             ],
@@ -474,21 +474,21 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                 child: ZTextFieldEntitled(
                                   controller: city,
                                   title: locale.city,
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ),
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: province,
                                   title: locale.province,
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ),
                               Expanded(
                                 child: ZTextFieldEntitled(
                                   controller: country,
                                   title: locale.country,
-                                  onSubmit: (_) => onSubmit(),
+                                  onFieldSubmitted: (_) => onSubmit(),
                                 ),
                               ),
                             ],
@@ -497,10 +497,10 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
 
                           ZTextFieldEntitled(
                             controller: address,
-                            keyboardInputType: TextInputType.multiline,
+                            keyboardType: TextInputType.multiline,
                             maxLength: 100,
                             title: locale.address,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => onSubmit(),
                           ),
                           const SizedBox(height: 16),
 
@@ -593,7 +593,7 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                               controller: branchName,
                               isRequired: true,
                               title: locale.branchName,
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                               validator: (value) {
                                 if (value.isEmpty) {
                                   return locale.required(locale.branchName);
@@ -612,7 +612,7 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                     controller: phone,
                                     title: locale.mobile1,
                                     inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                                    onSubmit: (_) => onSubmit(),
+                                    onFieldSubmitted: (_) => onSubmit(),
                                   ),
                                 ),
                                 Expanded(
@@ -621,7 +621,7 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                     controller: zipCode,
                                     title: locale.zipCode,
                                     inputFormat: [FilteringTextInputFormatter.digitsOnly],
-                                    onSubmit: (_) => onSubmit(),
+                                    onFieldSubmitted: (_) => onSubmit(),
                                   ),
                                 ),
                               ],
@@ -635,21 +635,21 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
                                   child: ZTextFieldEntitled(
                                     controller: city,
                                     title: locale.city,
-                                    onSubmit: (_) => onSubmit(),
+                                    onFieldSubmitted: (_) => onSubmit(),
                                   ),
                                 ),
                                 Expanded(
                                   child: ZTextFieldEntitled(
                                     controller: province,
                                     title: locale.province,
-                                    onSubmit: (_) => onSubmit(),
+                                    onFieldSubmitted: (_) => onSubmit(),
                                   ),
                                 ),
                                 Expanded(
                                   child: ZTextFieldEntitled(
                                     controller: country,
                                     title: locale.country,
-                                    onSubmit: (_) => onSubmit(),
+                                    onFieldSubmitted: (_) => onSubmit(),
                                   ),
                                 ),
                               ],
@@ -658,10 +658,10 @@ class _BaseBranchOverviewState extends State<_BaseBranchOverview> {
 
                             ZTextFieldEntitled(
                               controller: address,
-                              keyboardInputType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               maxLength: 100,
                               title: locale.address,
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                             ),
                             const SizedBox(height: 8),
 

@@ -181,7 +181,7 @@ class _MobileState extends State<_Mobile> {
                               isRequired: true,
                               controller: usrName,
                               hint: "e.g zaitoon",
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                               validator: (e) {
                                 if (e.isEmpty) {
                                   return locale.required(locale.username);
@@ -282,7 +282,7 @@ class _MobileState extends State<_Mobile> {
                               isRequired: true,
                               controller: usrEmail,
                               hint: 'example@zaitoonsoft.com',
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                               validator: (e) {
                                 if (e.isEmpty) {
                                   return locale.required(locale.email);
@@ -302,7 +302,7 @@ class _MobileState extends State<_Mobile> {
                               isRequired: true,
                               securePassword: isPasswordSecure,
                               controller: usrPas,
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                               validator: (e) {
                                 if (e.isEmpty) {
                                   return locale.required(locale.password);
@@ -330,7 +330,7 @@ class _MobileState extends State<_Mobile> {
                               isRequired: true,
                               securePassword: isPasswordSecure,
                               controller: passConfirm,
-                              onSubmit: (_) => onSubmit(),
+                              onFieldSubmitted: (_) => onSubmit(),
                               validator: (e) {
                                 if (e.isEmpty) {
                                   return locale.required(locale.confirmPassword);
@@ -606,7 +606,7 @@ class _DesktopState extends State<_Desktop> {
                             isRequired: true,
                             controller: usrName,
                             hint: "e.g zaitoon",
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => onSubmit(),
                             validator: (e) {
                               if (e.isEmpty) {
                                 return locale.required(locale.username);
@@ -734,7 +734,7 @@ class _DesktopState extends State<_Desktop> {
                       isRequired: true,
                       controller: usrEmail,
                       hint: 'example@zaitoonsoft.com',
-                      onSubmit: (_) => onSubmit(),
+                      onFieldSubmitted: (_) => onSubmit(),
                       validator: (e) {
                         if (e.isEmpty) {
                           return locale.required(locale.email);
@@ -755,7 +755,7 @@ class _DesktopState extends State<_Desktop> {
                             isRequired: true,
                             securePassword: isPasswordSecure,
                             controller: usrPas,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => onSubmit(),
                             validator: (e) {
                               if (e.isEmpty) {
                                 return locale.required(locale.password);
@@ -782,7 +782,7 @@ class _DesktopState extends State<_Desktop> {
                             isRequired: true,
                             securePassword: isPasswordSecure,
                             controller: passConfirm,
-                            onSubmit: (_) => onSubmit(),
+                            onFieldSubmitted: (_) => onSubmit(),
                             validator: (e) {
                               if (e.isEmpty) {
                                 return locale.required(locale.confirmPassword);

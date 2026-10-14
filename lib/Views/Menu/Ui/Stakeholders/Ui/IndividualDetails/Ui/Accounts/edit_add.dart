@@ -143,7 +143,7 @@ class _MobileState extends State<_Mobile> {
                           controller: accName,
                           isRequired: true,
                           title: tr.accountName,
-                          onSubmit: (_) => onSubmit(),
+                          onFieldSubmitted: (_) => onSubmit(),
                           validator: (value) {
                             if (value.isEmpty) {
                               return tr.required(tr.accountName);
@@ -173,8 +173,8 @@ class _MobileState extends State<_Mobile> {
 
                         // Account Limit
                         ZTextFieldEntitled(
-                          onSubmit: (_) => onSubmit(),
-                          keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
+                          onFieldSubmitted: (_) => onSubmit(),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           inputFormat: [
                             FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),
                             SmartThousandsDecimalFormatter(),
@@ -389,8 +389,8 @@ class _DesktopState extends State<_Desktop> {
                   isRequired: true,
                 ),
                 ZTextFieldEntitled(
-                  onSubmit: (_) => onSubmit(),
-                  keyboardInputType:
+                  onFieldSubmitted: (_) => onSubmit(),
+                  keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
                   inputFormat: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),

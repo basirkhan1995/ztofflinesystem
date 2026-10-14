@@ -272,7 +272,7 @@ class _DesktopState extends State<_Desktop> {
                     ),
                     const SizedBox(height: 12),
                     ZTextFieldEntitled(
-                      keyboardInputType: TextInputType.multiline,
+                      keyboardType: TextInputType.multiline,
                       controller: remark,
                       title: tr.remark,
                     ),
@@ -950,7 +950,7 @@ class _MobileState extends State<_Mobile> {
 
             // Remark
             ZTextFieldEntitled(
-                keyboardInputType: TextInputType.multiline,
+                keyboardType: TextInputType.multiline,
                 controller: remark,
                 title: tr.remark
             ),
@@ -1666,7 +1666,7 @@ class _TabletState extends State<_Tablet> {
               ),
               const SizedBox(height: 12),
               ZTextFieldEntitled(
-                keyboardInputType: TextInputType.multiline,
+                keyboardType: TextInputType.multiline,
                 controller: remark,
                 title: tr.remark,
               ),

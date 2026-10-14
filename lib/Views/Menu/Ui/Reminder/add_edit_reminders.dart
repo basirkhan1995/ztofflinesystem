@@ -244,7 +244,7 @@ class _DesktopState extends State<_Desktop> {
                 hint: widget.autoFillAmount != null && widget.autoFillAmount! > 0
                     ? null
                     : null,
-                keyboardInputType:
+                keyboardType:
                 const TextInputType.numberWithOptions(decimal: true),
                 isRequired: true,
                 inputFormat: [
@@ -271,7 +271,7 @@ class _DesktopState extends State<_Desktop> {
               ZTextFieldEntitled(
                 controller: details,
                 title: tr.details,
-                keyboardInputType: TextInputType.multiline,
+                keyboardType: TextInputType.multiline,
                 maxLength: 100,
               ),
 

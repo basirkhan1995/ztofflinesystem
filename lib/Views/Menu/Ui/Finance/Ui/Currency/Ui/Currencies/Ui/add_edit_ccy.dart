@@ -152,7 +152,7 @@ class _AddEditCurrencyViewState extends State<AddEditCurrencyView> {
                           title: locale.ccyName,
                           controller: ccyName,
                           isRequired: true,
-                          onSubmit: (_) => onSubmit(isUpdate),
+                          onFieldSubmitted: (_) => onSubmit(isUpdate),
                           validator: (value) => value.isEmpty
                               ? locale.required(locale.ccyName)
                               : null,
@@ -165,7 +165,7 @@ class _AddEditCurrencyViewState extends State<AddEditCurrencyView> {
                                 title: locale.currencyCode,
                                 controller: ccyCode,
                                 isRequired: true,
-                                onSubmit: (_) => onSubmit(isUpdate),
+                                onFieldSubmitted: (_) => onSubmit(isUpdate),
                                 validator: (value) {
                                   if (value.isEmpty) {
                                     return locale.required(locale.currencyCode);
@@ -186,7 +186,7 @@ class _AddEditCurrencyViewState extends State<AddEditCurrencyView> {
                                 title: locale.ccySymbol,
                                 controller: ccySymbol,
                                 isRequired: true,
-                                onSubmit: (_) => onSubmit(isUpdate),
+                                onFieldSubmitted: (_) => onSubmit(isUpdate),
                                 validator: (value) {
                                   if (value.isEmpty) {
                                     return locale.required(locale.ccySymbol);
@@ -207,7 +207,7 @@ class _AddEditCurrencyViewState extends State<AddEditCurrencyView> {
                                 title: locale.countryCode,
                                 controller: ccyCountryCode,
                                 isRequired: true,
-                                onSubmit: (_) => onSubmit(isUpdate),
+                                onFieldSubmitted: (_) => onSubmit(isUpdate),
                                 validator: (value) {
                                   if (value.isEmpty) {
                                     return locale.required(locale.countryCode);
@@ -229,7 +229,7 @@ class _AddEditCurrencyViewState extends State<AddEditCurrencyView> {
                           title: locale.country,
                           controller: country,
                           isRequired: true,
-                          onSubmit: (_) => onSubmit(isUpdate),
+                          onFieldSubmitted: (_) => onSubmit(isUpdate),
                           validator: (value) => value.isEmpty
                               ? locale.required(locale.country)
                               : null,
@@ -238,7 +238,7 @@ class _AddEditCurrencyViewState extends State<AddEditCurrencyView> {
                           title: locale.ccyLocalName,
                           controller: ccyLocalName,
                           isRequired: true,
-                          onSubmit: (_) => onSubmit(isUpdate),
+                          onFieldSubmitted: (_) => onSubmit(isUpdate),
                           validator: (value) => value.isEmpty
                               ? locale.required(locale.ccyLocalName)
                               : null,

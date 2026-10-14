@@ -249,7 +249,7 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                                 controller: storageName,
                                 isRequired: true,
                                 title: locale.storage,
-                                onSubmit: (_) => onSubmit(),
+                                onFieldSubmitted: (_) => onSubmit(),
                                 validator: (value) {
                                   if (value.isEmpty) {
                                     return locale.required(locale.storage);
@@ -277,7 +277,7 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                                 controller: storageLocation,
                                 isRequired: true,
                                 title: locale.location,
-                                onSubmit: (_) => onSubmit(),
+                                onFieldSubmitted: (_) => onSubmit(),
                                 validator: (value) {
                                   if (value.isEmpty) {
                                     return locale.required(locale.location);
@@ -303,10 +303,10 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                               ),
                               child: ZTextFieldEntitled(
                                 controller: storageDetails,
-                                keyboardInputType: TextInputType.multiline,
+                                keyboardType: TextInputType.multiline,
                                 maxLength: 100,
                                 title: locale.details,
-                                onSubmit: (_) => onSubmit(),
+                                onFieldSubmitted: (_) => onSubmit(),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -408,7 +408,7 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                     controller: storageName,
                     isRequired: true,
                     title: locale.storage,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => onSubmit(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return locale.required(locale.storage);
@@ -421,7 +421,7 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                     controller: storageLocation,
                     isRequired: true,
                     title: locale.location,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => onSubmit(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return locale.required(locale.location);
@@ -432,10 +432,10 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                   const SizedBox(height: 12),
                   ZTextFieldEntitled(
                     controller: storageDetails,
-                    keyboardInputType: TextInputType.multiline,
+                    keyboardType: TextInputType.multiline,
                     maxLength: 100,
                     title: locale.details,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => onSubmit(),
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -513,7 +513,7 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                     controller: storageName,
                     isRequired: true,
                     title: locale.storage,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => onSubmit(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return locale.required(locale.storage);
@@ -526,7 +526,7 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                     controller: storageLocation,
                     isRequired: true,
                     title: locale.location,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => onSubmit(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return locale.required(locale.location);
@@ -537,10 +537,10 @@ class _BaseStorageAddEditState extends State<_BaseStorageAddEdit> {
                   const SizedBox(height: 12),
                   ZTextFieldEntitled(
                     controller: storageDetails,
-                    keyboardInputType: TextInputType.multiline,
+                    keyboardType: TextInputType.multiline,
                     maxLength: 100,
                     title: locale.details,
-                    onSubmit: (_) => onSubmit(),
+                    onFieldSubmitted: (_) => onSubmit(),
                   ),
                   const SizedBox(height: 16),
                   Container(
