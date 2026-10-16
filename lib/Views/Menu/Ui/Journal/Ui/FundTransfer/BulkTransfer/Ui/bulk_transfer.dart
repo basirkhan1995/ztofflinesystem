@@ -94,7 +94,7 @@ class _BulkTransferScreenState extends State<BulkTransferScreen> {
       baseCurrency = comState.company.comLocalCcy;
     }
     return ZFormDialog(
-      width: MediaQuery.of(context).size.width * .7,
+      width: MediaQuery.of(context).size.width * .8,
       icon: Icons.bubble_chart_outlined,
       isActionTrue: false,
       onAction: null,
@@ -474,7 +474,7 @@ class _TransferHeaderRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Text(
               AppLocalizations.of(context)!.accounts,
               style: TextStyle(
@@ -617,7 +617,7 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
 
           // Account Selection
           Expanded(
-            flex: 2,
+            flex: 3,
             child: SizedBox(
               height: 40,
               child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
@@ -628,8 +628,8 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
                 hintText: AppLocalizations.of(context)!.accounts,
                 isRequired: true,
                 bloc: context.read<AccountsBloc>(),
-                fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '1,2,3,4,5,6,7,8,9,10,11,12', exclude: "10101010,10101011",ccy: widget.selectedCurrency ?? baseCurrency,)),
-                searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '1,2,3,4,5,6,7,8,9,10,11,12', exclude: "10101010,10101011",ccy: widget.selectedCurrency ?? baseCurrency)),
+                fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '1,2,3,4,5,6,7,8,9,10,11,12', exclude: "10101011",ccy: widget.selectedCurrency ?? baseCurrency,)),
+                searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '1,2,3,4,5,6,7,8,9,10,11,12', exclude: "10101011",ccy: widget.selectedCurrency ?? baseCurrency)),
                 itemBuilder: (context, account) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   child: Row(
