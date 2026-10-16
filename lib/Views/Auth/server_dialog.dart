@@ -585,83 +585,142 @@ class _DesktopServerConnectState extends State<_DesktopServerConnect> {
       ),
     );
   }
+  /// Small pill badge showing SERVER / CLIENT role
+  Widget _buildRoleBadge(ThemeData theme, AppLocalizations locale) {
+    final isServer = _isServer;
+    final color = isServer ? theme.colorScheme.primary : Colors.blueGrey;
 
-  // ---------- DEVICE INFO ----------
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: color.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isServer ? Icons.dns_rounded : Icons.devices_rounded,
+            size: 12,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            (isServer ? "SERVER" : "CLIENT"),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+// ---------- DEVICE INFO ----------
   Widget _buildDeviceInfo() {
     final theme = Theme.of(context);
     final locale = AppLocalizations.of(context)!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(8),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: theme.dividerColor.withValues(alpha: 0.5),
+          color: theme.dividerColor.withValues(alpha: 0.4),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.09),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.computer_rounded,
-              size: 17,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            locale.deviceIp,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _myIP!,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                fontFeatures: const [FontFeature.tabularFigures()],
+          // ── IP row: icon + label/value + role badge
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Icon(
+                  Icons.computer_rounded,
+                  size: 22,
+                  color: theme.colorScheme.primary,
+                ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      locale.deviceIp,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _myIP ?? '-',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildRoleBadge(theme, locale),
+            ],
           ),
-          if (_isServer)
+
+          // ── Server-only informational message under the IP row
+          if (_isServer) ...[
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(8),
+                color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(3),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    Icons.dns_rounded,
-                    size: 11,
+                    Icons.info_outline_rounded,
+                    size: 14,
                     color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    locale.serverIp.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      color: theme.colorScheme.primary,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      // Replace with the exact wording you want
+                      locale.serverIp,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        height: 1.4,
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+          ],
         ],
       ),
     );

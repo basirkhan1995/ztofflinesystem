@@ -10,13 +10,27 @@ part 'cash_balances_state.dart';
 class CashBalancesBloc extends Bloc<CashBalancesEvent, CashBalancesState> {
   final Repositories _repo;
   CashBalancesBloc(this._repo) : super(CashBalancesInitial()) {
+
     on<LoadCashBalanceBranchWiseEvent>((event, emit) async {
-      emit(CashBalancesLoadingState());
+      emit( CashBalancesLoadingState());
+
       try {
-        final cash = await _repo.cashBalances(branchId: event.branchId);
-        emit(CashBalancesLoadedState(cash));
+        final result = await _repo.cashBalances(
+          branchId: event.branchId,
+          from: event.from,
+          to: event.to,
+        );
+
+        if (result == null) {
+          emit(const CashBalancesErrorState(
+            "No cash balance data found for this branch and date range.",
+          ));
+          return;
+        }
+
+        emit(CashBalancesLoadedState(result));
       } catch (e) {
-        emit(CashBalancesErrorState(e.toString()));
+        emit(CashBalancesErrorState("Failed to load cash balances: $e"));
       }
     });
 

@@ -8,33 +8,35 @@ part 'subscription_state.dart';
 
 class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final Repositories _repo;
+
   SubscriptionBloc(this._repo) : super(SubscriptionInitial()) {
-
-    on<LoadSubscriptionEvent>((event, emit) async{
+    // ── Load current subscription ──
+    on<LoadSubscriptionEvent>((event, emit) async {
       emit(SubscriptionLoadingState());
-      try{
-       final res = await _repo.getSubscriptions();
-       emit(SubscriptionLoadedState(res));
-      }catch(e){
+      try {
+        final res = await _repo.getSubscriptions();
+        emit(SubscriptionLoadedState(res));
+      } catch (e) {
         emit(SubscriptionErrorState(e.toString()));
       }
     });
 
-    on<AddOrUpdateSubscriptionEvent>((event, emit) async{
+    // ── Generate new key (no old key needed) ──
+    on<GenerateSubscriptionEvent>((event, emit) async {
       emit(SubscriptionLoadingState());
-      try{
-        final res = await _repo.addSubscription(oldKey: event.oldKey, newKey: event.newKey, expireDate: event.expireDate);
+      try {
+        final res = await _repo.generateSubscription(
+          expireDate: event.expireDate,
+        );
         final msg = res["msg"];
-        if(msg == "mismatch"){
-          emit(SubscriptionErrorState("Old key not matched"));
-        }else{
-          emit(SubscriptionErrorState(msg));
+        if (msg == "success") {
+          emit(SubscriptionGeneratedState(res["newKey"] as String));
+        } else {
+          emit(SubscriptionErrorState(msg?.toString() ?? "Unknown error"));
         }
-        emit(SubscriptionSuccessState());
-      }catch(e){
+      } catch (e) {
         emit(SubscriptionErrorState(e.toString()));
       }
     });
-
   }
 }

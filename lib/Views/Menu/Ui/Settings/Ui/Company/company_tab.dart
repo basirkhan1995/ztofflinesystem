@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/storage.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
+import '../../../../../Auth/Subscription/Ui/subscription.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../../Auth/models/login_model.dart';
 import 'Branches/Ui/branches.dart';
@@ -35,21 +36,28 @@ class _CompanyTabsViewState extends State<CompanyTabsView> {
           value: CompanySettingsMenuName.profile,
           label: AppLocalizations.of(context)!.profile,
           screen: const CompanySettingsView(),
-          icon: Icons.settings,
+          icon: Icons.person,
         ),
       if (login.hasPermission(70) ?? false)
         MenuDefinition(
           value: CompanySettingsMenuName.branch,
           label: AppLocalizations.of(context)!.branch,
           screen: const BranchesView(),
-          icon: Icons.location_city_rounded,
+          icon: Icons.location_city_outlined,
         ),
       if (login.hasPermission(71) ?? false)
         MenuDefinition(
           value: CompanySettingsMenuName.storage,
           label: AppLocalizations.of(context)!.storages,
           screen: const StorageView(),
-          icon: Icons.inventory_2_rounded,
+          icon: Icons.inventory_2_outlined,
+        ),
+      if (login.hasPermission(64) ?? false)
+        MenuDefinition(
+          value: CompanySettingsMenuName.subscriptions,
+          label: "Subscription",
+          screen: const SubscriptionView(),
+          icon: Icons.subscriptions_outlined,
         ),
     ];
 

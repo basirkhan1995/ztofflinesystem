@@ -578,7 +578,7 @@ class _MobileState extends State<_Mobile> {
                 _buildMobileInfoRow(
                   Icons.calendar_today,
                   '${tr.date}:',
-                  branch.brcEntryDate?.toDateTime ?? 'N/A',
+                  branch.brcEntryDate?.toFormattedDate() ?? 'N/A',
                 ),
                 const SizedBox(height: 8),
                 _buildMobileInfoRow(
@@ -2441,7 +2441,7 @@ class _DesktopState extends State<_Desktop> {
               children: [
                 _buildInfoRow('${tr.address}:', branch.address ?? 'N/A'),
                 _buildInfoRow('${tr.status}:', branch.brcStatus == 1 ? tr.active : tr.inactive),
-                _buildInfoRow('${tr.date}:', branch.brcEntryDate?.toDateTime ?? 'N/A'),
+                _buildInfoRow('${tr.date}:', branch.brcEntryDate?.toFormattedDate() ?? 'N/A'),
                 const SizedBox(height: 20),
                 if (branch.records != null && branch.records!.isNotEmpty)
                   _buildRecordsList(branch.records!),

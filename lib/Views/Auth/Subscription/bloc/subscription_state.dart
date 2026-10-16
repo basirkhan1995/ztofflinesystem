@@ -9,6 +9,10 @@ final class SubscriptionInitial extends SubscriptionState {
   List<Object> get props => [];
 }
 
+final class SubscriptionLoadingState extends SubscriptionState {
+  @override
+  List<Object> get props => [];
+}
 
 final class SubscriptionLoadedState extends SubscriptionState {
   final List<SubscriptionModel> subs;
@@ -17,14 +21,11 @@ final class SubscriptionLoadedState extends SubscriptionState {
   List<Object> get props => [subs];
 }
 
-final class SubscriptionSuccessState extends SubscriptionState {
+final class SubscriptionGeneratedState extends SubscriptionState {
+  final String newKey;
+  const SubscriptionGeneratedState(this.newKey);
   @override
-  List<Object> get props => [];
-}
-
-final class SubscriptionLoadingState extends SubscriptionState {
-  @override
-  List<Object> get props => [];
+  List<Object> get props => [newKey];
 }
 
 final class SubscriptionErrorState extends SubscriptionState {
@@ -33,5 +34,3 @@ final class SubscriptionErrorState extends SubscriptionState {
   @override
   List<Object> get props => [message];
 }
-
-

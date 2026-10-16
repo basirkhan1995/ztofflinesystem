@@ -166,7 +166,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(file.path)],
-            text: 'Document from Zaitoon Petroleum',
+            text: 'Document from Zaitoon',
           ),
         );
       } else {
@@ -476,9 +476,10 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
               Expanded(
                 child: ZOutlineButton(
                   width: double.infinity,
+                  backgroundHover: Theme.of(context).colorScheme.error,
                   height: 40,
-                  icon: Icons.picture_as_pdf_sharp,
-                  label: Text(locale.saveTitle),
+                  icon: Icons.save_alt_rounded,
+                  label: Text("PDF"),
                   onPressed: _handleSave,
                 ),
               ),

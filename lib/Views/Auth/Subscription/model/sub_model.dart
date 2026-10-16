@@ -35,8 +35,12 @@ class SubscriptionModel {
   factory SubscriptionModel.fromMap(Map<String, dynamic> json) => SubscriptionModel(
     subId: json["subID"],
     subKey: json["subKey"],
-    subExpireDate: json["subExpireDate"] == null ? null : DateTime.parse(json["subExpireDate"]),
-    subEntryDate: json["subEntryDate"] == null ? null : DateTime.parse(json["subEntryDate"]),
+    subExpireDate: json["subExpireDate"] == null
+        ? null
+        : DateTime.parse(json["subExpireDate"]),
+    subEntryDate: json["subEntryDate"] == null
+        ? null
+        : DateTime.parse(json["subEntryDate"]),
   );
 
   Map<String, dynamic> toMap() => {

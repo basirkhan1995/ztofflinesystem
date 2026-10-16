@@ -17,6 +17,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoadingState());
 
       try {
+        await Future.delayed(Duration(milliseconds: 300));
         final response = await _repo.login(
           username: event.usrName,
           password: event.usrPassword,

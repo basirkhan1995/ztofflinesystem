@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
@@ -15,16 +16,15 @@ import '../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 ///  ARTEL GREEN BRAND PALETTE
 /// ============================================================
 class _ArtelColors {
-  static const pw.PdfColor primary      = pw.PdfColor.fromInt(0xFF2E7D32); // green 800
-  static const pw.PdfColor primaryDark  = pw.PdfColor.fromInt(0xFF1B5E20); // green 900
-  static const pw.PdfColor primaryLight = pw.PdfColor.fromInt(0xFFE8F5E9); // green 50
-  static const pw.PdfColor stripeLight  = pw.PdfColor.fromInt(0xFFF1F8E9); // subtle stripe
-  static const pw.PdfColor border       = pw.PdfColor.fromInt(0xFFA5D6A7); // green 200
-  static const pw.PdfColor divider      = pw.PdfColor.fromInt(0xFFC8E6C9); // green 100
-  static const pw.PdfColor accentText   = pw.PdfColor.fromInt(0xFF388E3C); // green 700
- // static const pw.PdfColor positive     = pw.PdfColor.fromInt(0xFF2E7D32); // green
-  static const pw.PdfColor negative     = pw.PdfColor.fromInt(0xFFC62828); // red (semantic)
-  static const pw.PdfColor warning      = pw.PdfColor.fromInt(0xFFEF6C00); // orange (charges)
+  static const pw.PdfColor primary      = pw.PdfColor.fromInt(0xFF2E7D32);
+  static const pw.PdfColor primaryDark  = pw.PdfColor.fromInt(0xFF1B5E20);
+  static const pw.PdfColor primaryLight = pw.PdfColor.fromInt(0xFFE8F5E9);
+  static const pw.PdfColor stripeLight  = pw.PdfColor.fromInt(0xFFF1F8E9);
+  static const pw.PdfColor border       = pw.PdfColor.fromInt(0xFFA5D6A7);
+  static const pw.PdfColor divider      = pw.PdfColor.fromInt(0xFFC8E6C9);
+  static const pw.PdfColor accentText   = pw.PdfColor.fromInt(0xFF388E3C);
+  static const pw.PdfColor negative     = pw.PdfColor.fromInt(0xFFC62828);
+  static const pw.PdfColor warning      = pw.PdfColor.fromInt(0xFFEF6C00);
 }
 
 abstract class InvoiceItem {
@@ -121,32 +121,79 @@ class InvoicePrintService extends PrintServices {
   bool _isRollFormat(pw.PdfPageFormat format) {
     return format.width == pw.PdfPageFormat.roll80.width;
   }
+
+  /// ============================================================
+  ///  WATERMARK
+  /// ============================================================
+  pw.Widget _buildWatermark({
+    required ReportModel company,
+    required pw.PdfPageFormat pageFormat,
+    double opacity = 0.15,
+    double widthFactor = 0.9,
+    double heightFactor = 0.9,
+    double angle = 0,
+    pw.BoxFit fit = pw.BoxFit.contain,
+    double topOffset = 0,
+    double leftOffset = 0,
+  }) {
+    final logo = company.comLogo;
+    if (logo == null || logo.isEmpty) {
+      return pw.SizedBox.shrink();
+    }
+
+    final double targetWidth = pageFormat.availableWidth * widthFactor;
+    final double targetHeight = pageFormat.availableHeight * heightFactor;
+
+    pw.Widget image = pw.Image(
+      pw.MemoryImage(logo),
+      fit: fit,
+    );
+
+    if (angle != 0) {
+      image = pw.Transform.rotate(angle: angle, child: image);
+    }
+
+    return pw.Center(
+      child: pw.Transform.translate(
+        offset: pw.PdfPoint(leftOffset, topOffset),
+        child: pw.Opacity(
+          opacity: opacity,
+          child: pw.SizedBox(
+            width: targetWidth,
+            height: targetHeight,
+            child: image,
+          ),
+        ),
+      ),
+    );
+  }
+
   /// ============================================================
   ///  SALE INVOICE — TERMS & CONDITIONS MESSAGE (Persian only)
   /// ============================================================
   pw.Widget _saleTermsMessage({required String language}) {
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-
+      padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 2),
       child: pw.Row(
-        crossAxisAlignment: language == "en"? pw.CrossAxisAlignment.end : pw.CrossAxisAlignment.start,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Expanded(
             child: pw.Column(
-              crossAxisAlignment: language == "en"? pw.CrossAxisAlignment.end : pw.CrossAxisAlignment.start,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 zText(
-                  text: "شرایط و مقررات",
+                  text: tr(text: "termsAndConditionTitle", tr: language),
                   fontSize: 9,
                   fontWeight: pw.FontWeight.bold,
                   color: _ArtelColors.primaryDark,
                 ),
                 pw.SizedBox(height: 3),
-                zText(text: "همه وسایل الکترونیکی دارای ورنتی و گرنتی مطابق لایحه کمپنی میباشد.", fontSize: 8),
+                zText(
+                    text: tr(text: "termsAndCondition1", tr: language), fontSize: 8),
                 pw.SizedBox(height: 2),
-                zText(text: "سند هذا بدون مهر و امضاء اعتبار ندارد.", fontSize: 8),
+                zText(text: tr(text: "termsAndCondition2", tr: language), fontSize: 8),
                 pw.SizedBox(height: 2),
-                zText(text: "جنس فروخته شده واپس گرفته نمیشود.", fontSize: 8),
+                zText(text: tr(text: "termsAndCondition3", tr: language), fontSize: 8),
               ],
             ),
           ),
@@ -159,6 +206,7 @@ class InvoicePrintService extends PrintServices {
       ),
     );
   }
+
   Future<pw.Document> _generateRoll80Invoice({
     required String invoiceType,
     required String invoiceNumber,
@@ -185,20 +233,15 @@ class InvoicePrintService extends PrintServices {
     double? generalDiscount,
     double? extraCharges,
   }) async {
-
     final document = pw.Document();
 
-    /// 🔹 Check Logo
-    final bool hasCompanyLogo = company.comLogo != null &&
-        company.comLogo is Uint8List &&
-        company.comLogo!.isNotEmpty;
+    final bool hasCompanyLogo = company.comLogo != null && company.comLogo is Uint8List && company.comLogo!.isNotEmpty;
 
     pw.ImageProvider? logoImage;
     if (hasCompanyLogo) {
       logoImage = pw.MemoryImage(company.comLogo ?? Uint8List(0));
     }
 
-    // Determine if we need local amount conversion
     final needsConversion = localCurrency != null &&
         currency != null &&
         currency != localCurrency &&
@@ -211,8 +254,7 @@ class InvoicePrintService extends PrintServices {
     final double effectiveSubtotal = subtotal ??
         items.fold(
           0.0,
-              (sum, item) =>
-          sum + ((item.quantity * item.batch) * item.unitPrice),
+              (sum, item) => sum + ((item.quantity * item.batch) * item.unitPrice),
         );
 
     final double itemDiscount = totalItemDiscount ?? 0.0;
@@ -221,26 +263,35 @@ class InvoicePrintService extends PrintServices {
 
     final double charges = extraCharges ?? 0.0;
 
-    final double finalGrandTotal = effectiveSubtotal - totalDiscount + charges;
+    final double finalGrandTotal =
+        effectiveSubtotal - totalDiscount + charges;
 
-    // Calculate local amounts
-    final double localSubtotal = needsConversion ? effectiveSubtotal * safeExchangeRate : effectiveSubtotal;
-    final double localCharges = needsConversion ? charges * safeExchangeRate : charges;
-    final double localFinalGrandTotal = needsConversion ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate) : finalGrandTotal;
-    final double localCashPayment = needsConversion ? cashPayment * safeExchangeRate : cashPayment;
-    final double localCreditAmount = needsConversion ? creditAmount * safeExchangeRate : creditAmount;
+    final double localSubtotal = needsConversion
+        ? effectiveSubtotal * safeExchangeRate
+        : effectiveSubtotal;
+    final double localCharges =
+    needsConversion ? charges * safeExchangeRate : charges;
+    final double localFinalGrandTotal = needsConversion
+        ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate)
+        : finalGrandTotal;
+    final double localCashPayment =
+    needsConversion ? cashPayment * safeExchangeRate : cashPayment;
+    final double localCreditAmount =
+    needsConversion ? creditAmount * safeExchangeRate : creditAmount;
 
-    final String displayCurrency = needsConversion ? safeLocalCurrency : safeBaseCurrency;
+    final String displayCurrency =
+    needsConversion ? safeLocalCurrency : safeBaseCurrency;
 
     final double totalQty = items.fold(
-      0.0, (sum, item) => sum + item.quantity,
+      0.0,
+          (sum, item) => sum + item.quantity,
     );
 
-    // Account currency
     String accCcy;
     if (needsConversion && safeLocalCurrency.isNotEmpty) {
       accCcy = safeLocalCurrency;
-    } else if (account?.actCurrency != null && account!.actCurrency!.isNotEmpty) {
+    } else if (account?.actCurrency != null &&
+        account!.actCurrency!.isNotEmpty) {
       accCcy = account.actCurrency!;
     } else {
       accCcy = safeBaseCurrency;
@@ -250,10 +301,14 @@ class InvoicePrintService extends PrintServices {
         ? double.tryParse(account.accAvailBalance ?? "0.0") ?? 0.0
         : 0.0;
 
-    // Amount in words
     final lang = NumberToWords.getLanguageFromLocale(Locale(language));
-    final amountForWords = needsConversion ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate) : finalGrandTotal;
-    final parsedAmount = int.tryParse(double.tryParse(amountForWords.toString())?.toStringAsFixed(0) ?? "0") ?? 0;
+    final amountForWords = needsConversion
+        ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate)
+        : finalGrandTotal;
+    final parsedAmount = int.tryParse(
+        double.tryParse(amountForWords.toString())?.toStringAsFixed(0) ??
+            "0") ??
+        0;
     final amountInWords = NumberToWords.convert(parsedAmount, lang);
 
     document.addPage(
@@ -267,392 +322,359 @@ class InvoicePrintService extends PrintServices {
           marginBottom: 8,
         ),
         textDirection: documentLanguage(language: language),
-
         build: (context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+          return pw.Stack(
             children: [
-
-              /// ================= HEADER (GREEN BRAND) =================
-              pw.Container(
-                width: double.infinity,
-                padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 3),
-                decoration: pw.BoxDecoration(
-                  color: _ArtelColors.primaryLight,
-                  border: pw.Border(
-                    bottom: pw.BorderSide(color: _ArtelColors.primary, width: 1.2),
-                  ),
+              pw.Positioned.fill(
+                child: _buildWatermark(
+                  company: company,
+                  pageFormat: pageFormat,
+                  opacity: 0.15,
+                  widthFactor: 0.9,
+                  heightFactor: 0.9,
+                  angle: -0.35,
+                  fit: pw.BoxFit.contain,
+                  topOffset: 60,
                 ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    if (logoImage != null)
-                      pw.Image(logoImage, width: 60, height: 60),
-
-                    pw.SizedBox(height: 3),
-
-                    zText(
-                      text: company.comName ?? "",
-                      fontSize: 13,
-                      fontWeight: pw.FontWeight.bold,
-                      textAlign: pw.TextAlign.center,
-                      color: _ArtelColors.primaryDark,
-                    ),
-
-                    if ((company.compPhone ?? '').isNotEmpty)
-                      zText(
-                        text: company.compPhone ?? '',
-                        fontSize: 8,
-                        textAlign: pw.TextAlign.center,
-                        color: _ArtelColors.accentText,
+              ),
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Container(
+                    width: double.infinity,
+                    padding: const pw.EdgeInsets.symmetric(
+                        vertical: 4, horizontal: 3),
+                    decoration: pw.BoxDecoration(
+                      color: _ArtelColors.primaryLight,
+                      border: pw.Border(
+                        bottom: pw.BorderSide(
+                            color: _ArtelColors.primary, width: 1.2),
                       ),
-
-                    if ((company.comAddress ?? '').isNotEmpty)
-                      pw.Row(
-                          mainAxisAlignment: pw.MainAxisAlignment.center,
-                          children: [
-                            zText(
-                              text: company.comAddress ?? '',
-                              fontSize: 7,
-                              textAlign: pw.TextAlign.center,
-                              color: _ArtelColors.accentText,
-                            ),
-                            if ((company.partyCity ?? '').isNotEmpty) ...[
-                              pw.SizedBox(width: 1),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        if (logoImage != null)
+                          pw.Image(logoImage, width: 60, height: 60),
+                        pw.SizedBox(height: 3),
+                        zText(
+                          text: company.comName ?? "",
+                          fontSize: 13,
+                          fontWeight: pw.FontWeight.bold,
+                          textAlign: pw.TextAlign.center,
+                          color: _ArtelColors.primaryDark,
+                        ),
+                        if ((company.compPhone ?? '').isNotEmpty)
+                          zText(
+                            text: company.compPhone ?? '',
+                            fontSize: 8,
+                            textAlign: pw.TextAlign.center,
+                            color: _ArtelColors.accentText,
+                          ),
+                        if ((company.comAddress ?? '').isNotEmpty)
+                          pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.center,
+                            children: [
                               zText(
-                                text: company.partyCity ?? '',
+                                text: company.comAddress ?? '',
                                 fontSize: 7,
                                 textAlign: pw.TextAlign.center,
                                 color: _ArtelColors.accentText,
                               ),
-                            ]
-                          ]
-                      ),
-                  ],
-                ),
-              ),
-
-              /// ================= INVOICE INFO =================
-
-              _rollSummaryRow(
-                label: tr(text: 'invoiceNumber', tr: language),
-                value: invoiceNumber,
-                language: language,
-              ),
-
-              _rollSummaryRow(
-                label: tr(
-                  text: isSale ? 'customer' : 'supplier',
-                  tr: language,
-                ),
-                value: customerSupplierName,
-                language: language,
-              ),
-
-              _rollSummaryRow(
-                label: tr(text: 'date', tr: language),
-                value: invoiceDate?.shamsiDateFormatted ?? '',
-                language: language,
-              ),
-
-              if ((reference ?? '').isNotEmpty)
-                _rollSummaryRow(
-                  label: tr(text: 'reference', tr: language),
-                  value: reference ?? '',
-                  language: language,
-                ),
-
-              pw.SizedBox(height: 5),
-
-              /// ================= TABLE HEADER (GREEN) =================
-
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(
-                  vertical: 2,
-                  horizontal: 1,
-                ),
-                decoration: pw.BoxDecoration(
-                  color: _ArtelColors.primaryLight,
-                  border: pw.Border(
-                    top: pw.BorderSide(color: _ArtelColors.primary, width: 0.8),
-                    bottom: pw.BorderSide(color: _ArtelColors.primary, width: 0.8),
+                              if ((company.partyCity ?? '').isNotEmpty) ...[
+                                pw.SizedBox(width: 1),
+                                zText(
+                                  text: company.partyCity ?? '',
+                                  fontSize: 7,
+                                  textAlign: pw.TextAlign.center,
+                                  color: _ArtelColors.accentText,
+                                ),
+                              ]
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                child: pw.Row(
-                  children: [
-
-                    pw.SizedBox(
-                      width: 14,
-                      child: zText(
-                        text: '#',
-                        fontSize: 6,
-                        fontWeight: pw.FontWeight.bold,
-                        textAlign: pw.TextAlign.center,
-                        color: _ArtelColors.primaryDark,
-                      ),
-                    ),
-
-                    pw.SizedBox(width: 2),
-
-                    pw.Expanded(
-                      flex: 5,
-                      child: zText(
-                        text: tr(text: 'items', tr: language),
-                        fontSize: 7,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _ArtelColors.primaryDark,
-                      ),
-                    ),
-
-                    pw.Expanded(
-                      flex: 1,
-                      child: zText(
-                        text: tr(text: 'quantity', tr: language),
-                        fontSize: 7,
-                        fontWeight: pw.FontWeight.bold,
-                        textAlign: pw.TextAlign.center,
-                        color: _ArtelColors.primaryDark,
-                      ),
-                    ),
-
-                    pw.Expanded(
-                      flex: 2,
-                      child: zText(
-                        text: tr(text: 'unitPrice', tr: language),
-                        fontSize: 7,
-                        fontWeight: pw.FontWeight.bold,
-                        textAlign: pw.TextAlign.center,
-                        color: _ArtelColors.primaryDark,
-                      ),
-                    ),
-
-                    pw.Expanded(
-                      flex: 2,
-                      child: zText(
-                        text: tr(text: 'total', tr: language),
-                        fontSize: 7,
-                        fontWeight: pw.FontWeight.bold,
-                        textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
-                        color: _ArtelColors.primaryDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              /// ================= ITEMS =================
-
-              ...List.generate(items.length, (index) {
-
-                final item = items[index];
-
-                final itemUnitPrice = needsConversion
-                    ? (item.unitPrice * safeExchangeRate)
-                    : item.unitPrice;
-                final itemTotal = needsConversion
-                    ? (item.total * safeExchangeRate)
-                    : item.total;
-
-                return pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(
-                    vertical: 2,
-                    horizontal: 1,
+                  _rollSummaryRow(
+                    label: tr(text: 'invoiceNumber', tr: language),
+                    value: invoiceNumber,
+                    language: language,
                   ),
-                  decoration: index.isOdd ? pw.BoxDecoration(color: _ArtelColors.stripeLight) : null,
-                  child: pw.Row(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.SizedBox(
-                        width: 12,
-                        child: zText(
-                          text: "${index + 1}",
-                          fontSize: 6,
-                          textAlign: pw.TextAlign.center,
-                          color: _ArtelColors.accentText,
-                        ),
+                  _rollSummaryRow(
+                    label: tr(
+                      text: isSale ? 'customer' : 'supplier',
+                      tr: language,
+                    ),
+                    value: customerSupplierName,
+                    language: language,
+                  ),
+                  _rollSummaryRow(
+                    label: tr(text: 'date', tr: language),
+                    value: invoiceDate?.shamsiDateFormatted ?? '',
+                    language: language,
+                  ),
+                  if ((reference ?? '').isNotEmpty)
+                    _rollSummaryRow(
+                      label: tr(text: 'reference', tr: language),
+                      value: reference ?? '',
+                      language: language,
+                    ),
+                  pw.SizedBox(height: 5),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(
+                        vertical: 2, horizontal: 1),
+                    decoration: pw.BoxDecoration(
+                      color: _ArtelColors.primaryLight,
+                      border: pw.Border(
+                        top: pw.BorderSide(
+                            color: _ArtelColors.primary, width: 0.8),
+                        bottom: pw.BorderSide(
+                            color: _ArtelColors.primary, width: 0.8),
                       ),
-
-                      pw.SizedBox(width: 2),
-
-                      pw.Expanded(
-                        flex: 5,
-                        child: zText(
-                          textAlign: language == "en" ? pw.TextAlign.left : pw.TextAlign.right,
-                          text: item.productName,
-                          fontSize: 7,
+                    ),
+                    child: pw.Row(
+                      children: [
+                        pw.SizedBox(
+                          width: 14,
+                          child: zText(
+                            text: '#',
+                            fontSize: 6,
+                            fontWeight: pw.FontWeight.bold,
+                            textAlign: pw.TextAlign.center,
+                            color: _ArtelColors.primaryDark,
+                          ),
                         ),
-                      ),
-
-                      pw.Expanded(
-                        flex: 1,
-                        child: zText(
-                          text: item.quantity.toStringAsFixed(0),
-                          fontSize: 7,
-                          textAlign: pw.TextAlign.center,
+                        pw.SizedBox(width: 2),
+                        pw.Expanded(
+                          flex: 5,
+                          child: zText(
+                            text: tr(text: 'items', tr: language),
+                            fontSize: 7,
+                            fontWeight: pw.FontWeight.bold,
+                            textAlign: pw.TextAlign.start,
+                            color: _ArtelColors.primaryDark,
+                          ),
                         ),
-                      ),
-
-                      pw.Expanded(
-                        flex: 2,
-                        child: zText(
-                          text: itemUnitPrice.toAmount(decimal: 2),
-                          fontSize: 7,
-                          textAlign: pw.TextAlign.center,
+                        pw.Expanded(
+                          flex: 1,
+                          child: zText(
+                            text: tr(text: 'quantity', tr: language),
+                            fontSize: 7,
+                            fontWeight: pw.FontWeight.bold,
+                            textAlign: pw.TextAlign.center,
+                            color: _ArtelColors.primaryDark,
+                          ),
                         ),
-                      ),
+                        pw.Expanded(
+                          flex: 2,
+                          child: zText(
+                            text: tr(text: 'unitPrice', tr: language),
+                            fontSize: 7,
+                            fontWeight: pw.FontWeight.bold,
+                            textAlign: pw.TextAlign.end,
+                            color: _ArtelColors.primaryDark,
+                          ),
+                        ),
+                        pw.Expanded(
+                          flex: 2,
+                          child: zText(
+                            text: tr(text: 'total', tr: language),
+                            fontSize: 7,
+                            fontWeight: pw.FontWeight.bold,
+                            textAlign: pw.TextAlign.end,
+                            color: _ArtelColors.primaryDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ...List.generate(items.length, (index) {
+                    final item = items[index];
+                    final itemUnitPrice = needsConversion
+                        ? (item.unitPrice * safeExchangeRate)
+                        : item.unitPrice;
+                    final itemTotal = needsConversion
+                        ? (item.total * safeExchangeRate)
+                        : item.total;
 
-                      pw.Expanded(
-                        flex: 2,
-                        child: zText(
-                          text: itemTotal.toAmount(decimal: 2),
-                          fontSize: 7,
-                          textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
-                          fontWeight: pw.FontWeight.bold,
+                    return pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                          vertical: 2, horizontal: 1),
+                      decoration: index.isOdd
+                          ? pw.BoxDecoration(
+                          color: _ArtelColors.stripeLight)
+                          : null,
+                      child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.SizedBox(
+                            width: 12,
+                            child: zText(
+                              text: "${index + 1}",
+                              fontSize: 6,
+                              textAlign: pw.TextAlign.center,
+                              color: _ArtelColors.accentText,
+                            ),
+                          ),
+                          pw.SizedBox(width: 2),
+                          pw.Expanded(
+                            flex: 5,
+                            child: zText(
+                              textAlign: pw.TextAlign.start,
+                              text: item.productName,
+                              fontSize: 7,
+                            ),
+                          ),
+                          pw.Expanded(
+                            flex: 1,
+                            child: zText(
+                              text: item.quantity.toStringAsFixed(0),
+                              fontSize: 7,
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                          pw.Expanded(
+                            flex: 2,
+                            child: zText(
+                              text: itemUnitPrice.toAmount(decimal: 2),
+                              fontSize: 7,
+                              textAlign: pw.TextAlign.end,
+                            ),
+                          ),
+                          pw.Expanded(
+                            flex: 2,
+                            child: zText(
+                              text: itemTotal.toAmount(decimal: 2),
+                              fontSize: 7,
+                              textAlign: pw.TextAlign.end,
+                              fontWeight: pw.FontWeight.bold,
+                              color: _ArtelColors.primaryDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  pw.SizedBox(height: 6),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(4),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(
+                          color: _ArtelColors.border, width: 0.6),
+                      borderRadius: pw.BorderRadius.circular(2),
+                    ),
+                    child: pw.Column(
+                      children: [
+                        _rollSummaryRow(
+                          label: tr(text: 'totalQty', tr: language),
+                          value: totalQty.toStringAsFixed(0),
+                          language: language,
+                        ),
+                        if (effectiveSubtotal != finalGrandTotal ||
+                            itemDiscount > 0 ||
+                            generalDisc > 0 ||
+                            charges > 0)
+                          _rollSummaryRow(
+                            label: tr(text: 'subtotal', tr: language),
+                            value:
+                            "${needsConversion ? localSubtotal.toAmount(decimal: 2) : effectiveSubtotal.toAmount(decimal: 2)} $displayCurrency",
+                            language: language,
+                          ),
+                        if (itemDiscount > 0)
+                          _rollSummaryRow(
+                            label: tr(text: 'itemDiscounts', tr: language),
+                            value:
+                            "- ${needsConversion ? (itemDiscount * safeExchangeRate).toAmount(decimal: 2) : itemDiscount.toAmount(decimal: 2)} $displayCurrency",
+                            language: language,
+                            color: _ArtelColors.negative,
+                          ),
+                        if (generalDisc > 0)
+                          _rollSummaryRow(
+                            label: tr(text: 'generalDiscount', tr: language),
+                            value:
+                            "- ${needsConversion ? (generalDisc * safeExchangeRate).toAmount(decimal: 2) : generalDisc.toAmount(decimal: 2)} $displayCurrency",
+                            language: language,
+                            color: _ArtelColors.negative,
+                          ),
+                        if (charges > 0)
+                          _rollSummaryRow(
+                            label: tr(text: 'extraCharges', tr: language),
+                            value:
+                            "+ ${needsConversion ? localCharges.toAmount(decimal: 2) : charges.toAmount(decimal: 2)} $displayCurrency",
+                            language: language,
+                            color: _ArtelColors.warning,
+                          ),
+                        horizontalDivider(color: _ArtelColors.divider),
+                        _rollSummaryRow(
+                          label: tr(text: 'grandTotal', tr: language),
+                          value:
+                          "${localFinalGrandTotal.toAmount(decimal: 2)} $displayCurrency",
+                          language: language,
+                          isBold: true,
+                          fontSize: 10,
                           color: _ArtelColors.primaryDark,
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-
-              pw.SizedBox(height: 6),
-
-              /// ================= SUMMARY (GREEN BORDER) =================
-
-              pw.Container(
-                padding: const pw.EdgeInsets.all(4),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: _ArtelColors.border, width: 0.6),
-                  borderRadius: pw.BorderRadius.circular(2),
-                ),
-                child: pw.Column(
-                  children: [
-
-                    _rollSummaryRow(
-                      label: tr(text: 'totalQty', tr: language),
-                      value: totalQty.toStringAsFixed(0),
-                      language: language,
+                        if (creditAmount > 0)
+                          _rollSummaryRow(
+                            label: tr(text: 'invoiceAmount', tr: language),
+                            value: "${localCreditAmount.toAmount(decimal: 2)} $displayCurrency",
+                            language: language,
+                          ),
+                        if (cashPayment > 0)
+                          _rollSummaryRow(
+                            label: tr(text: 'cashReceipt', tr: language),
+                            value:
+                            "${localCashPayment.toAmount(decimal: 2)} $displayCurrency",
+                            language: language,
+                          ),
+                        if (account != null) ...[
+                          _rollSummaryRow(
+                            label: tr(text: 'previousBalance', tr: language),
+                            value:
+                            "${accountBalance.toAmount(decimal: 2)} $accCcy",
+                            language: language,
+                          ),
+                          _rollSummaryRow(
+                            label: tr(text: 'newBalance', tr: language),
+                            value:
+                            "${(isSale ? accountBalance - localCreditAmount : accountBalance + localCreditAmount).toAmount(decimal: 2)} $accCcy",
+                            language: language,
+                            isBold: true,
+                            color: _ArtelColors.primaryDark,
+                          ),
+                        ],
+                      ],
                     ),
-
-                    if (effectiveSubtotal != finalGrandTotal || itemDiscount > 0 || generalDisc > 0 || charges > 0)
-                      _rollSummaryRow(
-                        label: tr(text: 'subtotal', tr: language),
-                        value: "${needsConversion ? localSubtotal.toAmount(decimal: 2) : effectiveSubtotal.toAmount(decimal: 2)} $displayCurrency",
-                        language: language,
-                      ),
-
-                    if (itemDiscount > 0)
-                      _rollSummaryRow(
-                        label: tr(text: 'itemDiscounts', tr: language),
-                        value: "- ${needsConversion ? (itemDiscount * safeExchangeRate).toAmount(decimal: 2) : itemDiscount.toAmount(decimal: 2)} $displayCurrency",
-                        language: language,
-                        color: _ArtelColors.negative,
-                      ),
-
-                    if (generalDisc > 0)
-                      _rollSummaryRow(
-                        label: tr(text: 'generalDiscount', tr: language),
-                        value: "- ${needsConversion ? (generalDisc * safeExchangeRate).toAmount(decimal: 2) : generalDisc.toAmount(decimal: 2)} $displayCurrency",
-                        language: language,
-                        color: _ArtelColors.negative,
-                      ),
-
-                    if (charges > 0)
-                      _rollSummaryRow(
-                        label: tr(text: 'extraCharges', tr: language),
-                        value: "+ ${needsConversion ? localCharges.toAmount(decimal: 2) : charges.toAmount(decimal: 2)} $displayCurrency",
-                        language: language,
-                        color: _ArtelColors.warning,
-                      ),
-
-                    horizontalDivider(color: _ArtelColors.divider),
-
-                    _rollSummaryRow(
-                      label: tr(text: 'grandTotal', tr: language),
-                      value: "${localFinalGrandTotal.toAmount(decimal: 2)} $displayCurrency",
-                      language: language,
-                      isBold: true,
-                      fontSize: 10,
+                  ),
+                  pw.SizedBox(height: 6),
+                  if (amountInWords.isNotEmpty) ...[
+                    zText(
+                      text: amountInWords,
+                      fontSize: 7,
+                      color: pw.PdfColors.grey800,
+                    ),
+                    pw.SizedBox(height: 4),
+                  ],
+                  if ((remark ?? '').isNotEmpty) ...[
+                    zText(
+                      text: tr(text: 'note', tr: language),
+                      fontSize: 8,
+                      fontWeight: pw.FontWeight.bold,
                       color: _ArtelColors.primaryDark,
                     ),
-
-                    if (cashPayment > 0)
-                      _rollSummaryRow(
-                        label: tr(text: 'cashReceipt', tr: language),
-                        value: "${localCashPayment.toAmount(decimal: 2)} $displayCurrency",
-                        language: language,
-                      ),
-
-                    if (creditAmount > 0)
-                      _rollSummaryRow(
-                        label: tr(text: 'invoiceAmount', tr: language),
-                        value: "${localCreditAmount.toAmount(decimal: 2)} $displayCurrency",
-                        language: language,
-                      ),
-
-                    if (account != null) ...[
-
-                      _rollSummaryRow(
-                        label: tr(text: 'previousBalance', tr: language),
-                        value: "${accountBalance.toAmount(decimal: 2)} $accCcy",
-                        language: language,
-                      ),
-
-                      _rollSummaryRow(
-                        label: tr(text: 'newBalance', tr: language),
-                        value: "${(isSale ? accountBalance - localCreditAmount : accountBalance + localCreditAmount).toAmount(decimal: 2)} $accCcy",
-                        language: language,
-                        isBold: true,
-                        color: _ArtelColors.primaryDark,
-                      ),
-                    ],
+                    pw.SizedBox(height: 2),
+                    zText(text: remark ?? '', fontSize: 7),
+                    pw.SizedBox(height: 5),
                   ],
-                ),
-              ),
-
-              pw.SizedBox(height: 6),
-
-              /// ================= AMOUNT IN WORDS =================
-
-              if (amountInWords.isNotEmpty) ...[
-                zText(
-                  text: amountInWords,
-                  fontSize: 7,
-                  color: pw.PdfColors.grey800,
-                ),
-                pw.SizedBox(height: 4),
-              ],
-
-              /// ================= REMARK =================
-
-              if ((remark ?? '').isNotEmpty) ...[
-                zText(
-                  text: tr(text: 'note', tr: language),
-                  fontSize: 8,
-                  fontWeight: pw.FontWeight.bold,
-                  color: _ArtelColors.primaryDark,
-                ),
-
-                pw.SizedBox(height: 2),
-
-                zText(
-                  text: remark ?? '',
-                  fontSize: 7,
-                ),
-
-                pw.SizedBox(height: 5),
-              ],
-
-              /// ================= FOOTER =================
-
-              pw.Center(
-                child: zText(
-                  text: tr(text: 'thankYou', tr: language),
-                  fontSize: 11,
-                  fontWeight: pw.FontWeight.bold,
-                  color: _ArtelColors.primary,
-                ),
+                  pw.Center(
+                    child: zText(
+                      text: tr(text: 'thankYou', tr: language),
+                      fontSize: 11,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _ArtelColors.primary,
+                    ),
+                  ),
+                ],
               ),
             ],
           );
@@ -664,7 +686,6 @@ class InvoicePrintService extends PrintServices {
   }
 
   /// ================= ROLL SUMMARY ROW =================
-
   pw.Widget _rollSummaryRow({
     required String label,
     required String value,
@@ -673,32 +694,27 @@ class InvoicePrintService extends PrintServices {
     double fontSize = 8,
     pw.PdfColor? color,
   }) {
-
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 1),
       child: pw.Row(
         children: [
-
           pw.Expanded(
             child: zText(
               text: label,
               fontSize: fontSize,
-              fontWeight: isBold
-                  ? pw.FontWeight.bold
-                  : pw.FontWeight.normal,
+              fontWeight:
+              isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              textAlign: pw.TextAlign.start,
             ),
           ),
-
           pw.SizedBox(width: 5),
-
           pw.Expanded(
             child: zText(
               text: value,
               fontSize: fontSize,
-              fontWeight: isBold
-                  ? pw.FontWeight.bold
-                  : pw.FontWeight.normal,
-              textAlign: pw.TextAlign.right,
+              fontWeight:
+              isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              textAlign: pw.TextAlign.end,
               color: color,
             ),
           ),
@@ -706,7 +722,6 @@ class InvoicePrintService extends PrintServices {
       ),
     );
   }
-
 
   // ==================== CREATE INVOICE ====================
   Future<void> createInvoiceDocument({
@@ -736,7 +751,6 @@ class InvoicePrintService extends PrintServices {
     double? extraCharges,
   }) async {
     try {
-
       final document = await generateInvoiceDocument(
         invoiceType: invoiceType,
         invoiceNumber: invoiceNumber,
@@ -939,9 +953,6 @@ class InvoicePrintService extends PrintServices {
     double? extraCharges,
   }) async {
     final document = pw.Document();
-    // final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
-    // final Uint8List imageBytes = imageData.buffer.asUint8List();
-    // final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
 
     if (_isRollFormat(pageFormat)) {
       return _generateRoll80Invoice(
@@ -984,13 +995,33 @@ class InvoicePrintService extends PrintServices {
       account: account,
     );
 
+    final pageTheme = pw.PageTheme(
+      pageFormat: pageFormat,
+      orientation: orientation,
+      margin: pw.EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+      textDirection: documentLanguage(language: language),
+      buildBackground: (pw.Context context) => pw.FullPage(
+        ignoreMargins: true,
+        child: pw.Center(
+          child: _buildWatermark(
+            company: company,
+            pageFormat: pageFormat,
+            opacity: 0.15,
+            widthFactor: 0.9,
+            heightFactor: 0.9,
+            angle: -0.35,
+            fit: pw.BoxFit.contain,
+            topOffset: 60,
+          ),
+        ),
+      ),
+    );
+
     document.addPage(
       pw.MultiPage(
+        pageTheme: pageTheme,
         maxPages: 1000,
-        margin: pw.EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-        pageFormat: pageFormat,
-        textDirection: documentLanguage(language: language),
-        orientation: orientation,
+
         build: (pw.Context context) => [
           firstPageHeader,
           _itemsTableHeader(
@@ -1015,7 +1046,13 @@ class InvoicePrintService extends PrintServices {
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // ✅ Summary stays on the LEFT
+              if (isSale) ...[
+                pw.SizedBox(width: 15),
+                pw.Expanded(
+                  flex: 1,
+                  child: _saleTermsMessage(language: language),
+                ),
+              ],
               pw.Expanded(
                 flex: 1,
                 child: _paymentSummary(
@@ -1037,30 +1074,24 @@ class InvoicePrintService extends PrintServices {
                   extraCharges: extraCharges,
                 ),
               ),
-
-              // ✅ Terms message only for SALE invoices on normal pages
-              if (isSale) ...[
-                pw.SizedBox(width: 15),
-                pw.Expanded(
-                  flex: 1,
-                  child: _saleTermsMessage(language: language),
-                ),
-              ],
             ],
           ),
-
-          pw.Spacer(),
           if (remark != null && remark.isNotEmpty) ...[
+            pw.SizedBox(height: 12),
             pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  zText(text: tr(text: "note", tr: language), fontSize: 8, color: _ArtelColors.accentText),
-                  pw.SizedBox(width: 5),
-                  zText(text: remark, fontSize: 8)
-                ]
-            )
-          ]
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                zText(
+                    text: tr(text: "note", tr: language),
+                    fontSize: 8,
+                    color: _ArtelColors.accentText),
+                pw.SizedBox(width: 5),
+                zText(text: remark, fontSize: 8),
+              ],
+            ),
+          ],
         ],
+
         header: (pw.Context context) => _pageHeader(
           language: language,
           report: company,
@@ -1069,12 +1100,6 @@ class InvoicePrintService extends PrintServices {
           localCurrency: localCurrency,
           exchangeRate: exchangeRate,
         ),
-        // footer: (pw.Context context) => footer(
-        //   report: company,
-        //   context: context,
-        //   language: language,
-        //   logoImage: logoImage,
-        // ),
       ),
     );
     return document;
@@ -1145,18 +1170,24 @@ class InvoicePrintService extends PrintServices {
     return pw.SizedBox();
   }
 
+  /// ============================================================
+  ///  ITEMS TABLE HEADER
+  ///  For RTL rows we use `pw.Alignment` (physical, direction-immune)
+  ///  so that money columns always hug the LEFT edge, and description
+  ///  always hugs the RIGHT edge — regardless of RTL/LTR flipping.
+  /// ============================================================
   pw.Widget _itemsTableHeader({
     required String language,
     required ReportModel report,
     required bool showLocalAmount,
   }) {
     const numberWidth = 30.0;
-    const descriptionWidth = 170.0;
-    const qtyWidth = 40.0;
-    const unitWidth = 30.0;
+    const descriptionWidth = 230.0;
+    const qtyWidth = 28.0;
+    const unitWidth = 24.0;
     const totalQtyWidth = 70.0;
-    const priceWidth = 60.0;
-    const totalWidth = 70.0;
+    const priceWidth = 50.0;
+    const totalWidth = 60.0;
     const batchWidth = 45.0;
     double headerFontSize = 11;
 
@@ -1164,7 +1195,7 @@ class InvoicePrintService extends PrintServices {
     final isWholeSale = report.visible?.isWholeSale ?? false;
 
     final Map<int, pw.TableColumnWidth> columnWidths;
-    final List<String> headers;
+    final List<({String text, pw.Alignment align})> headers;
 
     if (isRtl) {
       if (showLocalAmount) {
@@ -1180,14 +1211,14 @@ class InvoicePrintService extends PrintServices {
             7: pw.FixedColumnWidth(numberWidth),
           };
           headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerLeft),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerLeft),
+            (text: tr(text: 'totalQty', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'packing', tr: language),     align: pw.Alignment.center),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerRight),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
           ];
         } else {
           columnWidths = {
@@ -1199,12 +1230,12 @@ class InvoicePrintService extends PrintServices {
             5: pw.FixedColumnWidth(numberWidth),
           };
           headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerLeft),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerLeft),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerRight),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
           ];
         }
       } else {
@@ -1220,14 +1251,14 @@ class InvoicePrintService extends PrintServices {
             7: pw.FixedColumnWidth(numberWidth),
           };
           headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerLeft),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerLeft),
+            (text: tr(text: 'totalQty', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'packing', tr: language),     align: pw.Alignment.center),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerRight),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
           ];
         } else {
           columnWidths = {
@@ -1239,12 +1270,12 @@ class InvoicePrintService extends PrintServices {
             5: pw.FixedColumnWidth(numberWidth),
           };
           headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerLeft),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerLeft),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerRight),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
           ];
         }
       }
@@ -1262,14 +1293,14 @@ class InvoicePrintService extends PrintServices {
             7: pw.FixedColumnWidth(totalWidth),
           };
           headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerLeft),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'packing', tr: language),     align: pw.Alignment.center),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'totalQty', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerRight),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerRight),
           ];
         } else {
           columnWidths = {
@@ -1281,12 +1312,12 @@ class InvoicePrintService extends PrintServices {
             5: pw.FixedColumnWidth(totalWidth),
           };
           headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerLeft),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerRight),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerRight),
           ];
         }
       } else {
@@ -1302,14 +1333,14 @@ class InvoicePrintService extends PrintServices {
             7: pw.FixedColumnWidth(totalWidth),
           };
           headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerLeft),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'packing', tr: language),     align: pw.Alignment.center),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'totalQty', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerRight),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerRight),
           ];
         } else {
           columnWidths = {
@@ -1321,12 +1352,12 @@ class InvoicePrintService extends PrintServices {
             5: pw.FixedColumnWidth(totalWidth),
           };
           headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
+            (text: tr(text: 'number', tr: language),      align: pw.Alignment.center),
+            (text: tr(text: 'description', tr: language), align: pw.Alignment.centerLeft),
+            (text: tr(text: 'quantity', tr: language),    align: pw.Alignment.center),
+            (text: tr(text: 'unit', tr: language),        align: pw.Alignment.center),
+            (text: tr(text: 'unitPrice', tr: language),   align: pw.Alignment.centerRight),
+            (text: tr(text: 'total', tr: language),       align: pw.Alignment.centerRight),
           ];
         }
       }
@@ -1335,21 +1366,22 @@ class InvoicePrintService extends PrintServices {
     return pw.Table(
       border: pw.TableBorder(
         bottom: pw.BorderSide(color: _ArtelColors.primary, width: 1.2),
-        horizontalInside: pw.BorderSide(color: _ArtelColors.divider, width: 0.5),
+        horizontalInside:
+        pw.BorderSide(color: _ArtelColors.divider, width: 0.5),
       ),
       columnWidths: columnWidths,
       children: [
         pw.TableRow(
           verticalAlignment: pw.TableCellVerticalAlignment.middle,
           decoration: pw.BoxDecoration(color: _ArtelColors.primaryLight),
-          children: headers.map((header) {
-            return pw.Padding(
+          children: headers.map((h) {
+            return pw.Container(
+              alignment: h.align,
               padding: pw.EdgeInsets.all(4),
               child: zText(
-                text: header,
+                text: h.text,
                 fontSize: headerFontSize,
                 fontWeight: pw.FontWeight.bold,
-                textAlign: pw.TextAlign.center,
                 color: _ArtelColors.primaryDark,
               ),
             );
@@ -1368,12 +1400,12 @@ class InvoicePrintService extends PrintServices {
     required ReportModel report,
   }) {
     const numberWidth = 30.0;
-    const descriptionWidth = 170.0;
-    const qtyWidth = 40.0;
-    const unitWidth = 30.0;
+    const descriptionWidth = 230.0;
+    const qtyWidth = 28.0;
+    const unitWidth = 24.0;
     const totalQtyWidth = 70.0;
-    const priceWidth = 60.0;
-    const totalWidth = 70.0;
+    const priceWidth = 50.0;
+    const totalWidth = 60.0;
     const batchWidth = 45.0;
 
     final isRtl = language == 'fa' || language == 'ar';
@@ -1488,7 +1520,8 @@ class InvoicePrintService extends PrintServices {
       pw.Table(
         border: pw.TableBorder(
           bottom: pw.BorderSide(color: _ArtelColors.primary, width: 1.2),
-          horizontalInside: pw.BorderSide(color: _ArtelColors.divider, width: 0.5),
+          horizontalInside:
+          pw.BorderSide(color: _ArtelColors.divider, width: 0.5),
         ),
         columnWidths: columnWidths,
         children: [
@@ -1504,8 +1537,10 @@ class InvoicePrintService extends PrintServices {
               ),
               verticalAlignment: pw.TableCellVerticalAlignment.middle,
               children: isRtl
-                  ? _buildRtlRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report)
-                  : _buildLtrRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report),
+                  ? _buildRtlRow(items[i], i, showLocalAmount,
+                  safeLocalCurrency, safeExchangeRate, report)
+                  : _buildLtrRow(items[i], i, showLocalAmount,
+                  safeLocalCurrency, safeExchangeRate, report),
             ),
           pw.TableRow(
             children: List.generate(
@@ -1522,22 +1557,26 @@ class InvoicePrintService extends PrintServices {
     final List<pw.Widget> items = [];
 
     if (com.partyPhone?.isNotEmpty == true) {
-      items.add(verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
+      items.add(
+          verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
       items.add(zText(text: com.partyPhone ?? "", fontSize: 10));
     }
 
     if (com.partyAddress?.isNotEmpty == true) {
-      items.add(verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
+      items.add(
+          verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
       items.add(zText(text: com.partyAddress ?? "", fontSize: 10));
     }
 
     if (com.partyCity?.isNotEmpty == true) {
-      items.add(verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
+      items.add(
+          verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
       items.add(zText(text: com.partyCity ?? "", fontSize: 10));
     }
 
     if (com.partyProvince?.isNotEmpty == true) {
-      items.add(verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
+      items.add(
+          verticalDivider(height: 10, width: 1, color: _ArtelColors.divider));
       items.add(zText(text: com.partyProvince ?? "", fontSize: 10));
     }
 
@@ -1567,53 +1606,90 @@ class InvoicePrintService extends PrintServices {
         : tr(text: 'PUR', tr: language);
 
     return pw.Container(
-      padding: pw.EdgeInsets.symmetric(vertical: 0),
+      padding: pw.EdgeInsets.symmetric(vertical: 0, horizontal: 3),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.SizedBox(height: 4),
           pw.Row(
-              children: [
-                pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    zText(
-                      text: invoiceTitle,
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                      color: _ArtelColors.primaryDark,
-                    ),
-                    verticalDivider(height: 10, width: 1, color: _ArtelColors.divider),
-                    pw.Row(
-                        children: [
-                          zText(
-                              text: tr(text: 'invoiceNumber', tr: language),
-                              fontSize: 10,
-                              fontWeight: pw.FontWeight.bold,
-                              color: _ArtelColors.primaryDark
-                          ),
-                          zText(
-                            text: invoiceNumber,
-                            fontSize: 10,
-                          ),
-                        ]
-                    )
-                  ],
-                ),
-                pw.Spacer(),
-                if (_hasAnyAddressPhoneInfo(com))
+            children: [
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
                   pw.Row(
                     children: [
+                      if(language=="en")...[
+                        zText(
+                          text: invoiceTitle,
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _ArtelColors.primaryDark,
+                        ),
+                        pw.SizedBox(width: 2),
+                        zText(
+                            text: tr(text: 'invoiceNumber', tr: language),
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: _ArtelColors.primaryDark),
+                      ],
+
+                      if(language == "fa" || language == "ar")...[
+                        zText(
+                            text: tr(text: 'invoiceNumber', tr: language),
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: _ArtelColors.primaryDark),
+                        pw.SizedBox(width: 3),
+                        zText(
+                          text: invoiceTitle,
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _ArtelColors.primaryDark,
+                        ),
+                      ],
+
+                      verticalDivider(height: 10, width: 1,color: _ArtelColors.divider),
                       zText(
-                        text: tr(text: 'addressAndPhone', tr: language),
+                        text: invoiceNumber,
+                        fontSize: 10,
+                      ),
+                    ],
+                  )
+                ],
+              ),
+              pw.Spacer(),
+              pw.Row(
+                children: [
+                  zText(
+                      text: tr(text: "invoiceDate", tr: language),
+                      fontSize: 10,
+                      color: _ArtelColors.primaryDark,
+                      fontWeight: pw.FontWeight.bold),
+                  verticalDivider(
+                      height: 10, width: 1, color: _ArtelColors.divider),
+                  pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      zText(
+                        text: invoiceDate?.shamsiDateFormatted ??
+                            DateTime.now().shamsiDateFormatted,
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                         color: _ArtelColors.primaryDark,
                       ),
-                      ..._buildAddressPhoneItems(com),
+                      verticalDivider(
+                          height: 10, width: 1, color: _ArtelColors.divider),
+                      zText(
+                        text: invoiceDate?.toFormattedDate() ??
+                            DateTime.now().toFormattedDate(),
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                        color: _ArtelColors.accentText,
+                      ),
                     ],
                   ),
-              ]
+                ],
+              )
+            ],
           ),
           pw.SizedBox(height: 4),
           pw.Row(
@@ -1626,26 +1702,22 @@ class InvoicePrintService extends PrintServices {
                   account: account,
                 ),
               ),
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  zText(
-                    text: invoiceDate?.shamsiDateFormatted ?? DateTime.now().shamsiDateFormatted,
-                    fontSize: 10,
-                    fontWeight: pw.FontWeight.bold,
-                    color: _ArtelColors.primaryDark,
-                  ),
-                  verticalDivider(height: 10, width: 1, color: _ArtelColors.divider),
-                  zText(
-                    text: invoiceDate?.toFormattedDate() ?? DateTime.now().toFormattedDate(),
-                    fontSize: 9,
-                    fontWeight: pw.FontWeight.bold,
-                    color: _ArtelColors.accentText,
-                  ),
-                ],
-              ),
+
+              if (_hasAnyAddressPhoneInfo(com))
+                pw.Row(
+                  children: [
+                    zText(
+                      text: tr(text: 'addressAndPhone', tr: language),
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _ArtelColors.primaryDark,
+                    ),
+                    ..._buildAddressPhoneItems(com),
+                  ],
+                ),
             ],
           ),
+          pw.SizedBox(height: 4),
         ],
       ),
     );
@@ -1662,7 +1734,9 @@ class InvoicePrintService extends PrintServices {
         : tr(text: 'supplier', tr: language);
 
     String accountInfo = '';
-    if (account != null && account.accNumber != null && account.accName?.isNotEmpty == true) {
+    if (account != null &&
+        account.accNumber != null &&
+        account.accName?.isNotEmpty == true) {
       accountInfo = "${account.accName}";
     }
 
@@ -1674,15 +1748,15 @@ class InvoicePrintService extends PrintServices {
               text: "$title :",
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
-              color: _ArtelColors.primaryDark
-          ),
+              color: _ArtelColors.primaryDark),
           pw.SizedBox(width: 4),
           zText(
             text: customerSupplierName,
             fontSize: 10,
           ),
           if (accountInfo.isNotEmpty) ...[
-            verticalDivider(height: 8, width: 1, color: _ArtelColors.divider),
+            verticalDivider(
+                height: 8, width: 1, color: _ArtelColors.divider),
             zText(
               text: accountInfo,
               fontSize: 10,
@@ -1693,119 +1767,119 @@ class InvoicePrintService extends PrintServices {
     );
   }
 
+  /// ============================================================
+  ///  LTR ROW
+  /// ============================================================
   List<pw.Widget> _buildLtrRow(
       InvoiceItem item,
       int index,
       bool showLocalAmount,
       String localCurrency,
       double exchangeRate,
-      ReportModel report
+      ReportModel report,
       ) {
     final isWholeSale = report.visible?.isWholeSale ?? false;
     final totalQty = (item.quantity * item.batch).toStringAsFixed(0);
     final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 2);
-    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 2);
+    final totalLocalAmount =
+    (item.quantity * item.batch * item.unitPrice * exchangeRate)
+        .toAmount(decimal: 2);
 
     final widgets = <pw.Widget>[];
 
-    widgets.add(pw.Padding(
+    widgets.add(pw.Container(
+      alignment: pw.Alignment.center,
       padding: pw.EdgeInsets.all(3),
       child: zText(
         text: (index + 1).toString(),
         fontSize: 10,
-        textAlign: pw.TextAlign.center,
         color: _ArtelColors.accentText,
       ),
     ));
 
-    widgets.add(pw.Padding(
-      padding: pw.EdgeInsets.symmetric(horizontal: 5),
+    widgets.add(pw.Container(
+      alignment: pw.Alignment.centerLeft,
+      padding: pw.EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       child: zText(
         text: item.productName,
-        textAlign: pw.TextAlign.left,
         fontSize: 12,
       ),
     ));
 
-    widgets.add(pw.Padding(
+    widgets.add(pw.Container(
+      alignment: pw.Alignment.center,
       padding: pw.EdgeInsets.all(3),
       child: zText(
         text: item.quantity.toStringAsFixed(0),
         fontSize: 10,
-        textAlign: pw.TextAlign.center,
       ),
     ));
 
     if (isWholeSale) {
-      widgets.add(pw.Padding(
+      widgets.add(pw.Container(
+        alignment: pw.Alignment.center,
         padding: pw.EdgeInsets.all(3),
         child: zText(
           text: item.batch.toString(),
           fontSize: 10,
-          textAlign: pw.TextAlign.center,
         ),
       ));
     }
 
-    widgets.add(pw.Padding(
+    widgets.add(pw.Container(
+      alignment: pw.Alignment.center,
       padding: pw.EdgeInsets.all(3),
       child: zText(
         text: item.unit.isEmpty ? '-' : item.unit,
         fontSize: 10,
-        textAlign: pw.TextAlign.center,
       ),
     ));
 
     if (isWholeSale) {
-      widgets.add(pw.Padding(
+      widgets.add(pw.Container(
+        alignment: pw.Alignment.center,
         padding: pw.EdgeInsets.all(3),
         child: zText(
           text: totalQty,
           fontSize: 10,
           fontWeight: pw.FontWeight.bold,
-          textAlign: pw.TextAlign.center,
           color: _ArtelColors.primaryDark,
         ),
       ));
     }
 
     if (showLocalAmount) {
-      widgets.add(pw.Padding(
+      widgets.add(pw.Container(
+        alignment: pw.Alignment.centerRight,
         padding: pw.EdgeInsets.all(3),
-        child: zText(
-          text: localUnitPrice,
-          fontSize: 10,
-          textAlign: pw.TextAlign.center,
-        ),
+        child: zText(text: localUnitPrice, fontSize: 10),
       ));
-
-      widgets.add(pw.Padding(
+      widgets.add(pw.Container(
+        alignment: pw.Alignment.centerRight,
         padding: pw.EdgeInsets.all(3),
         child: zText(
           text: totalLocalAmount,
           fontSize: 10,
           fontWeight: pw.FontWeight.bold,
-          textAlign: pw.TextAlign.center,
           color: _ArtelColors.primaryDark,
         ),
       ));
     } else {
-      widgets.add(pw.Padding(
+      widgets.add(pw.Container(
+        alignment: pw.Alignment.centerRight,
         padding: pw.EdgeInsets.all(3),
         child: zText(
           text: item.unitPrice.toAmount(decimal: 2),
           fontSize: 10,
-          textAlign: pw.TextAlign.center,
         ),
       ));
-
-      widgets.add(pw.Padding(
+      widgets.add(pw.Container(
+        alignment: pw.Alignment.centerRight,
         padding: pw.EdgeInsets.all(3),
         child: zText(
           text: item.total.toAmount(),
           fontSize: 10,
           fontWeight: pw.FontWeight.bold,
-          textAlign: pw.TextAlign.center,
           color: _ArtelColors.primaryDark,
         ),
       ));
@@ -1814,6 +1888,14 @@ class InvoicePrintService extends PrintServices {
     return widgets;
   }
 
+  /// ============================================================
+  ///  RTL ROW
+  ///  Uses `pw.Alignment` (physical, direction-immune):
+  ///    - total / unitPrice hug the LEFT edge (physically)
+  ///    - description hugs the RIGHT edge (physically)
+  ///    - small numeric columns center
+  ///  Column push order matches the RTL `columnWidths` map.
+  /// ============================================================
   List<pw.Widget> _buildRtlRow(
       InvoiceItem item,
       int index,
@@ -1825,111 +1907,96 @@ class InvoicePrintService extends PrintServices {
     final isWholeSale = report.visible?.isWholeSale ?? false;
     final totalQty = (item.quantity * item.batch).toStringAsFixed(0);
     final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 2);
-    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 2);
+    final totalLocalAmount =
+    (item.quantity * item.batch * item.unitPrice * exchangeRate)
+        .toAmount(decimal: 2);
 
     final widgets = <pw.Widget>[];
 
-    if (showLocalAmount) {
-      widgets.add(pw.Padding(
+    // Helper for a centered numeric cell.
+    pw.Widget numericCell(String text, {bool bold = false, pw.PdfColor? color}) {
+      return pw.Container(
+        alignment: pw.Alignment.center,
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: totalLocalAmount,
+          text: text,
           fontSize: 10,
-          fontWeight: pw.FontWeight.bold,
-          textAlign: pw.TextAlign.center,
-          color: _ArtelColors.primaryDark,
+          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          color: color,
         ),
-      ));
+      );
+    }
 
-      widgets.add(pw.Padding(
+    // Helper for a "left-anchored" money cell.
+    pw.Widget moneyCell(String text, {bool bold = false, pw.PdfColor? color}) {
+      return pw.Container(
+        alignment: pw.Alignment.centerLeft,
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: localUnitPrice,
+          text: text,
           fontSize: 10,
-          textAlign: pw.TextAlign.center,
+          fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          color: color,
         ),
+      );
+    }
+
+    // ── 0: total (physically LEFT of paper) → anchor LEFT ──
+    if (showLocalAmount) {
+      widgets.add(moneyCell(
+        totalLocalAmount,
+        bold: true,
+        color: _ArtelColors.primaryDark,
       ));
     } else {
-      widgets.add(pw.Padding(
-        padding: pw.EdgeInsets.all(3),
-        child: zText(
-          text: item.total.toAmount(),
-          fontSize: 10,
-          fontWeight: pw.FontWeight.bold,
-          textAlign: pw.TextAlign.center,
-          color: _ArtelColors.primaryDark,
-        ),
-      ));
-
-      widgets.add(pw.Padding(
-        padding: pw.EdgeInsets.all(3),
-        child: zText(
-          text: item.unitPrice.toAmount(decimal: 2),
-          fontSize: 10,
-          textAlign: pw.TextAlign.center,
-        ),
+      widgets.add(moneyCell(
+        item.total.toAmount(),
+        bold: true,
+        color: _ArtelColors.primaryDark,
       ));
     }
 
+    // ── 1: unitPrice → anchor LEFT ──
+    if (showLocalAmount) {
+      widgets.add(moneyCell(localUnitPrice));
+    } else {
+      widgets.add(moneyCell(item.unitPrice.toAmount(decimal: 2)));
+    }
+
+    // ── 2: totalQty (wholesale only) ──
     if (isWholeSale) {
-      widgets.add(pw.Padding(
-        padding: pw.EdgeInsets.all(3),
-        child: zText(
-          text: totalQty,
-          fontSize: 10,
-          fontWeight: pw.FontWeight.bold,
-          textAlign: pw.TextAlign.center,
-          color: _ArtelColors.primaryDark,
-        ),
+      widgets.add(numericCell(
+        totalQty,
+        bold: true,
+        color: _ArtelColors.primaryDark,
       ));
     }
 
-    widgets.add(pw.Padding(
-      padding: pw.EdgeInsets.all(3),
-      child: zText(
-        text: item.unit.isEmpty ? '-' : item.unit,
-        fontSize: 10,
-        textAlign: pw.TextAlign.center,
-      ),
-    ));
+    // ── 3: unit ──
+    widgets.add(numericCell(item.unit.isEmpty ? '-' : item.unit));
 
+    // ── 4: packing / batch (wholesale only) ──
     if (isWholeSale) {
-      widgets.add(pw.Padding(
-        padding: pw.EdgeInsets.all(3),
-        child: zText(
-          text: item.batch.toString(),
-          fontSize: 10,
-          textAlign: pw.TextAlign.center,
-        ),
-      ));
+      widgets.add(numericCell(item.batch.toString()));
     }
 
-    widgets.add(pw.Padding(
-      padding: pw.EdgeInsets.all(3),
-      child: zText(
-        text: item.quantity.toStringAsFixed(0),
-        fontSize: 10,
-        textAlign: pw.TextAlign.center,
-      ),
-    ));
+    // ── 5: quantity ──
+    widgets.add(numericCell(item.quantity.toStringAsFixed(0)));
 
-    widgets.add(pw.Padding(
-      padding: pw.EdgeInsets.symmetric(horizontal: 5),
+    // ── 6: description (physically RIGHT of paper) → anchor RIGHT ──
+    widgets.add(pw.Container(
+      alignment: pw.Alignment.centerRight,
+      padding: pw.EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       child: zText(
         text: item.productName,
         fontSize: 12,
-        textAlign: pw.TextAlign.right,
       ),
     ));
 
-    widgets.add(pw.Padding(
-      padding: pw.EdgeInsets.all(3),
-      child: zText(
-        text: (index + 1).toString(),
-        fontSize: 10,
-        textAlign: pw.TextAlign.center,
-        color: _ArtelColors.accentText,
-      ),
+    // ── 7: number ──
+    widgets.add(numericCell(
+      (index + 1).toString(),
+      color: _ArtelColors.accentText,
     ));
 
     return widgets;
@@ -1953,13 +2020,6 @@ class InvoicePrintService extends PrintServices {
     double? generalDiscount,
     double? extraCharges,
   }) {
-    bool isRTL(String lang) {
-      final code = lang.toLowerCase();
-      return code.startsWith('fa') ||
-          code.startsWith('ar') ||
-          code.startsWith('ps');
-    }
-
     final totalQty = items.fold<double>(0, (sum, item) => sum + item.quantity);
     final lang = NumberToWords.getLanguageFromLocale(Locale(language));
 
@@ -1973,27 +2033,45 @@ class InvoicePrintService extends PrintServices {
         exchangeRate != null &&
         exchangeRate != 1.0;
 
-    final double effectiveSubtotal = subtotal ?? items.fold(0.0, (sum, item) => sum + ((item.quantity * item.batch) * item.unitPrice));
-    final double effectiveLocalSubtotal = effectiveSubtotal * safeExchangeRate;
+    final double effectiveSubtotal = subtotal ??
+        items.fold(
+            0.0,
+                (sum, item) =>
+            sum + ((item.quantity * item.batch) * item.unitPrice));
+    final double effectiveLocalSubtotal =
+        effectiveSubtotal * safeExchangeRate;
 
-    final double totalDiscount = (totalItemDiscount ?? 0.0) + (generalDiscount ?? 0.0);
+    final double totalDiscount =
+        (totalItemDiscount ?? 0.0) + (generalDiscount ?? 0.0);
     final double totalLocalDiscount = totalDiscount * safeExchangeRate;
 
     final double effectiveExtraCharges = extraCharges ?? 0.0;
-    final double effectiveLocaleExtraCharges = effectiveExtraCharges * safeExchangeRate;
+    final double effectiveLocaleExtraCharges =
+        effectiveExtraCharges * safeExchangeRate;
 
-    final double finalGrandTotal = effectiveSubtotal - totalDiscount + effectiveExtraCharges;
+    final double finalGrandTotal =
+        effectiveSubtotal - totalDiscount + effectiveExtraCharges;
     final double grandTotalLocal = finalGrandTotal * safeExchangeRate;
 
-    final effectiveCashPayment = (needsConversion && cashPayment > 0) ? cashPayment * safeExchangeRate : cashPayment;
-    final effectiveCreditAmount = (needsConversion && creditAmount > 0) ? creditAmount * safeExchangeRate : creditAmount;
+    final effectiveCashPayment =
+    (needsConversion && cashPayment > 0)
+        ? cashPayment * safeExchangeRate
+        : cashPayment;
+    final effectiveCreditAmount =
+    (needsConversion && creditAmount > 0)
+        ? creditAmount * safeExchangeRate
+        : creditAmount;
 
-    final amountForWords = needsConversion ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate) : finalGrandTotal;
-    final parsedAmount = int.tryParse(double.tryParse(amountForWords.toString())?.toStringAsFixed(0) ?? "0") ?? 0;
+    final amountForWords = needsConversion
+        ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate)
+        : finalGrandTotal;
+    final parsedAmount = int.tryParse(
+        double.tryParse(amountForWords.toString())?.toStringAsFixed(0) ??
+            "0") ??
+        0;
     final amountInWords = NumberToWords.convert(parsedAmount, lang);
 
     String accCcy;
-
     if (needsConversion && safeLocalCurrency.isNotEmpty) {
       accCcy = safeLocalCurrency;
     } else if (account != null &&
@@ -2017,38 +2095,35 @@ class InvoicePrintService extends PrintServices {
             _buildCompactRow(
                 language: language,
                 label: tr(text: 'subtotal', tr: language),
-                value: needsConversion ? effectiveLocalSubtotal : effectiveSubtotal,
-                currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
-                fontSize: 11
-            ),
+                value: needsConversion
+                    ? effectiveLocalSubtotal
+                    : effectiveSubtotal,
+                currency:
+                needsConversion ? safeLocalCurrency : safeBaseCurrency,
+                fontSize: 11)
           ],
           if (totalDiscount > 0)
             _buildCompactRow(
                 language: language,
                 label: tr(text: 'totalDiscount', tr: language),
-                value: needsConversion ? -totalLocalDiscount : -totalDiscount,
-                currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
+                value:
+                needsConversion ? -totalLocalDiscount : -totalDiscount,
+                currency:
+                needsConversion ? safeLocalCurrency : safeBaseCurrency,
                 color: _ArtelColors.negative,
-                fontSize: 11
-            ),
+                fontSize: 11),
           if (effectiveExtraCharges > 0)
             _buildCompactRow(
                 language: language,
                 label: tr(text: 'extraCharges', tr: language),
-                value: needsConversion ? effectiveLocaleExtraCharges : effectiveExtraCharges,
-                currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
+                value: needsConversion
+                    ? effectiveLocaleExtraCharges
+                    : effectiveExtraCharges,
+                currency:
+                needsConversion ? safeLocalCurrency : safeBaseCurrency,
                 color: _ArtelColors.warning,
-                fontSize: 11
-            ),
-          if (cashPayment > 0) ...[
-            _buildCompactRow(
-                language: language,
-                label: tr(text: 'cashReceipt', tr: language),
-                value: effectiveCashPayment,
-                currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
-                fontSize: 11
-            ),
-          ],
+                fontSize: 11),
+
           _buildGrandTotalCompact(
             label: tr(text: 'grandTotal', tr: language),
             value: needsConversion ? grandTotalLocal : finalGrandTotal,
@@ -2057,14 +2132,23 @@ class InvoicePrintService extends PrintServices {
             color: _ArtelColors.primaryDark,
           ),
           pw.SizedBox(height: 3),
+          if (cashPayment > 0) ...[
+            _buildCompactRow(
+                language: language,
+                label: tr(text: 'cashReceipt', tr: language),
+                value: effectiveCashPayment,
+                currency:
+                needsConversion ? safeLocalCurrency : safeBaseCurrency,
+                fontSize: 11),
+          ],
+          pw.SizedBox(height: 3),
           _buildCompactRow(
               language: language,
               label: tr(text: 'totalQty', tr: language),
               value: totalQty,
               decimalRange: 0,
               currency: '',
-              fontSize: 11
-          ),
+              fontSize: 11),
           if (account != null && creditAmount > 0) ...[
             _buildCompactRow(
               language: language,
@@ -2077,45 +2161,25 @@ class InvoicePrintService extends PrintServices {
               pw.Padding(
                 padding: pw.EdgeInsets.symmetric(horizontal: 5),
                 child: pw.Row(
-                  mainAxisAlignment:
-                  isRTL(language) ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
+                  mainAxisAlignment: pw.MainAxisAlignment.start,
                   children: [
-                    if (!isRTL(language)) ...[
-                      zText(
-                        text: tr(text: 'exchangeRate', tr: language),
-                        fontSize: 10,
-                        color: _ArtelColors.accentText,
-                      ),
-                      pw.Spacer(),
-                      zText(
-                        text: "1 ${_getLocalizedCurrency(safeBaseCurrency, language)} = ${safeExchangeRate.toStringAsFixed(4)} ${_getLocalizedCurrency(safeLocalCurrency, language)}",
-                        fontSize: 10,
-                        color: _ArtelColors.accentText,
-                      ),
-                    ] else ...[
-                      zText(
-                        text: tr(text: 'exchangeRate', tr: language),
-                        fontSize: 10,
-                        color: _ArtelColors.accentText,
-                      ),
-                      pw.Spacer(),
-                      zText(
-                        text: "1 ${_getLocalizedCurrency(safeBaseCurrency, language)} = ${safeExchangeRate.toStringAsFixed(4)} ${_getLocalizedCurrency(safeLocalCurrency, language)}",
-                        fontSize: 10,
-                        color: _ArtelColors.accentText,
-                      ),
-                    ],
+                    zText(
+                      text: tr(text: 'exchangeRate', tr: language),
+                      fontSize: 10,
+                      color: _ArtelColors.accentText,
+                      textAlign: pw.TextAlign.start,
+                    ),
+                    pw.Spacer(),
+                    zText(
+                      text:
+                      "1 ${_getLocalizedCurrency(safeBaseCurrency, language)} = ${safeExchangeRate.toStringAsFixed(4)} ${_getLocalizedCurrency(safeLocalCurrency, language)}",
+                      fontSize: 10,
+                      color: _ArtelColors.accentText,
+                      textAlign: pw.TextAlign.end,
+                    ),
                   ],
                 ),
               ),
-            _buildCompactRow(
-                language: language,
-                label: tr(text: 'invoiceAmount', tr: language),
-                value: effectiveCreditAmount,
-                currency: accCcy,
-                color: isSale ? _ArtelColors.negative : _ArtelColors.warning,
-                fontSize: 11
-            ),
             _buildGrandTotalRow(
               label: tr(text: 'newBalance', tr: language),
               value: isSale
@@ -2126,15 +2190,21 @@ class InvoicePrintService extends PrintServices {
             ),
           ],
           pw.SizedBox(height: 3),
-
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.start,
             children: [
-              zText(text: tr(text: "amountInWords", tr: language), fontSize: 8, color: _ArtelColors.accentText),
-              verticalDivider(height: 10, width: 1, color: _ArtelColors.divider),
               zText(
-                text: "$amountInWords ${accCcy == "USD" ? tr(text: 'usd', tr: language) : accCcy == "AFN" ? tr(text: "afn", tr: language) : accCcy == "CNY" ? tr(text: "cny", tr: language) : accCcy}",
+                  text: tr(text: "amountInWords", tr: language),
+                  fontSize: 8,
+                  color: _ArtelColors.accentText,
+                  textAlign: pw.TextAlign.start),
+              verticalDivider(
+                  height: 10, width: 1, color: _ArtelColors.divider),
+              zText(
+                text:
+                "$amountInWords ${accCcy == "USD" ? tr(text: 'usd', tr: language) : accCcy == "AFN" ? tr(text: "afn", tr: language) : accCcy == "CNY" ? tr(text: "cny", tr: language) : accCcy}",
                 fontSize: 8,
+                textAlign: pw.TextAlign.start,
               ),
             ],
           ),
@@ -2171,15 +2241,14 @@ class InvoicePrintService extends PrintServices {
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: _ArtelColors.primaryDark,
+              textAlign: pw.TextAlign.start,
             ),
           ),
           zText(
             text: "$displayValue$displayCurrency",
             fontSize: 12,
             fontWeight: pw.FontWeight.bold,
-            textAlign: language == "en"
-                ? pw.TextAlign.right
-                : pw.TextAlign.left,
+            textAlign: pw.TextAlign.end,
             color: color,
           ),
         ],
@@ -2204,9 +2273,8 @@ class InvoicePrintService extends PrintServices {
         ? pw.PdfColor.fromInt(0xFFFFEBEE)
         : _ArtelColors.primaryLight;
 
-    final textColor = isNegative
-        ? _ArtelColors.negative
-        : _ArtelColors.primaryDark;
+    final textColor =
+    isNegative ? _ArtelColors.negative : _ArtelColors.primaryDark;
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(top: 3),
@@ -2224,15 +2292,14 @@ class InvoicePrintService extends PrintServices {
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: _ArtelColors.primaryDark,
+              textAlign: pw.TextAlign.start,
             ),
           ),
           zText(
             text: "$displayValue$displayCurrency",
             fontSize: 12,
             fontWeight: pw.FontWeight.bold,
-            textAlign: language == "en"
-                ? pw.TextAlign.right
-                : pw.TextAlign.left,
+            textAlign: pw.TextAlign.end,
             color: textColor,
           ),
         ],
@@ -2255,25 +2322,29 @@ class InvoicePrintService extends PrintServices {
     final displayCurrency = currency.isEmpty ? '' : ' $localizedCurrency';
 
     return pw.Padding(
-      padding: pw.EdgeInsets.symmetric(vertical: 1, horizontal: 5),
+      padding: pw.EdgeInsets.symmetric(vertical: language == "en"? 1 : 0, horizontal: 5),
       child: pw.Row(
         children: [
-          pw.Container(
-            width: 120,
+          // Label takes the remaining space, aligned to .start
+          pw.Expanded(
             child: zText(
               text: label,
               fontSize: fontSize,
-              fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              fontWeight:
+              isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
               color: _ArtelColors.primaryDark,
+              textAlign: pw.TextAlign.start,
             ),
           ),
           pw.SizedBox(width: 10),
-          pw.Expanded(
+          // Value hugs the END edge of the row
+          pw.Container(
+            alignment: pw.Alignment.centerRight, // physical — always right
             child: zText(
               text: "$displayValue$displayCurrency",
               fontSize: fontSize,
-              fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
-              textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
+              fontWeight:
+              isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
               color: color,
             ),
           ),

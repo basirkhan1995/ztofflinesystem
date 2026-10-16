@@ -53,7 +53,6 @@ class AccountStatementPrintSettings extends PrintServices {
     required String pages,
   }) async {
     try {
-
       final cleanFormat = PdfFormatHelper.getPrinterFriendlyFormat(pageFormat);
 
       final document = await generateStatement(
@@ -66,13 +65,12 @@ class AccountStatementPrintSettings extends PrintServices {
 
       final bytes = await document.save();
 
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename: 'account_statement_${info.signatory}.pdf',
+      await Printing.directPrintPdf(
+        printer: selectedPrinter,
+        onLayout: (pw.PdfPageFormat format) async => bytes,
+        name: 'account_statement_${info.signatory}.pdf',
       );
-
     } catch (e) {
-
       throw Exception('Failed to print: $e');
     }
   }
@@ -105,8 +103,7 @@ class AccountStatementPrintSettings extends PrintServices {
 
     // Load your image asset
     final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
-    final Uint8List imageBytes = imageData.buffer.asUint8List();
-    final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+    imageData.buffer.asUint8List();
 
     document.addPage(
       pw.MultiPage(
@@ -121,12 +118,12 @@ class AccountStatementPrintSettings extends PrintServices {
           items(items: stmtInfo, language: language, report: report),
         ],
         header: (context) => prebuiltHeader,
-        footer: (context) => footer(
-          report: report,
-          context: context,
-          language: language,
-          logoImage: logoImage,
-        ),
+        // footer: (context) => footer(
+        //   report: report,
+        //   context: context,
+        //   language: language,
+        //   logoImage: logoImage,
+        // ),
       ),
     );
     return document;
@@ -372,17 +369,17 @@ class AccountStatementPrintSettings extends PrintServices {
     }
   }
   pw.Widget items({required AccountStatementModel items, required String language, required ReportModel report}) {
-    const dateWidth = 50.0;
+    const dateWidth = 60.0;
     const trnWidth = 90.0;
-    const amountWidth = 60.0;
-    const balanceWidth = 70.0;
+    const amountWidth = 70.0;
+    const balanceWidth = 75.0;
     bool isGre = report.visible?.dateType == DateType.gregorian;
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Container(
           width: double.infinity,
-          padding: const pw.EdgeInsets.symmetric(vertical: 4,horizontal: 4),
+          padding: const pw.EdgeInsets.symmetric(vertical: 4,horizontal: 8),
           decoration: pw.BoxDecoration(
             border: pw.Border(
               bottom: pw.BorderSide(width: 1, color: pw.PdfColors.grey300),
@@ -390,7 +387,8 @@ class AccountStatementPrintSettings extends PrintServices {
           ),
           child: pw.Row(
             children: [
-              pw.SizedBox(
+              pw.Container(
+                padding: pw.EdgeInsets.symmetric(horizontal: 4),
                 width: dateWidth,
                 child: zText(
                   text: tr(text: "date", tr: language),
@@ -458,11 +456,12 @@ class AccountStatementPrintSettings extends PrintServices {
         for (var i = 0; i < (items.records?.length ?? 0); i++)
           pw.Container(
             width: double.infinity,
-            padding: const pw.EdgeInsets.symmetric(vertical: 4,horizontal: 4),
+            padding: const pw.EdgeInsets.symmetric(vertical: 4,horizontal: 8),
             decoration: pw.BoxDecoration(
               color: i.isOdd ? pw.PdfColors.grey100 : null,
             ),
             child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.SizedBox(
                   width: dateWidth,

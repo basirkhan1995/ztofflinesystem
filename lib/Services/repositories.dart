@@ -2530,43 +2530,36 @@ class Repositories {
   }
 
   ///Cash Balances .............................................................
-  Future<CashBalancesModel> cashBalances({
+  Future<CashBalancesModel?> cashBalances({
     int? branchId,
+    String? from,
+    String? to,
     CancelToken? cancelToken,
   }) async {
+    final queryParams = <String, dynamic>{
+      'brcID': branchId,
+    };
+
+    if (from != null && from.isNotEmpty) queryParams['fromDate'] = from;
+    if (to   != null && to.isNotEmpty)   queryParams['toDate']   = to;
+
     final response = await api.get(
       endpoint: "/reports/cashBalance.php",
-      queryParams: {"brcID": branchId},
+      queryParams: queryParams,
       cancelToken: cancelToken,
     );
 
-    // Check if API returned a message
-    if (response.data is Map<String, dynamic> && response.data['msg'] != null) {
-      throw Exception(response.data['msg']);
-    }
-
-    // If response is null
-    if (response.data == null) {
-      throw Exception("No data found");
-    }
-
-    // Handle the List response from API
-    if (response.data is List) {
-      final List dataList = response.data;
-      if (dataList.isEmpty) {
-        throw Exception("No cash balance data found for this branch");
-      }
-
-      // Convert the first item in the list to CashBalancesModel
-      return CashBalancesModel.fromMap(dataList.first);
-    }
-
-    // Handle single Map response (fallback)
+    if (response.data == null) return null;
     if (response.data is Map<String, dynamic>) {
+      if (response.data['msg'] != null) return null;
       return CashBalancesModel.fromMap(response.data);
     }
-
-    throw Exception("Unexpected response format: ${response.data.runtimeType}");
+    if (response.data is List) {
+      final list = response.data as List;
+      if (list.isEmpty) return null;
+      return CashBalancesModel.fromMap(list.first);
+    }
+    return null;
   }
 
   Future<List<CashBalancesModel>> allCashBalances({
@@ -3621,6 +3614,17 @@ class Repositories {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> generateSubscription({
+    required String expireDate,
+  }) async {
+    final response = await api.post(
+      endpoint: "/setting/subscription.php",
+      data: {
+        "subExpireDate": expireDate,
+      },
+    );
+    return response.data;
+  }
   ///Stakeholders Report........................................................
   Future<List<IndReportModel>> getStakeholdersReport({String? search, String? dob, String? phone, String? gender}) async {
     final response = await api.post(

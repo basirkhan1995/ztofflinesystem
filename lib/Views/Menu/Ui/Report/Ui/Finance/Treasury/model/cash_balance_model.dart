@@ -213,26 +213,28 @@ class Transaction {
   factory Transaction.fromMap(Map<String, dynamic> json) => Transaction(
     date: json["date"] == null ? null : DateTime.parse(json["date"]),
     narration: json["narration"],
-    debit: json["debit"],
-    credit: json["credit"],
+    debit: json["debit"]?.toString(),
+    credit: json["credit"]?.toString(),
     currency: json["currency"],
     reference: json["reference"],
-    creditAccountName: json["credit_account_name"],
-    creditAccountNumber: json["credit_account_number"],
+    creditAccountName: json["contra_account_name"],
+    creditAccountNumber: json["contra_account_number"],
     transactionType: json["transaction_type"],
     status: json["status"],
     runningBalance: json["running_balance"],
   );
 
   Map<String, dynamic> toMap() => {
-    "date": date == null ? null : "${date!.year.toString().padLeft(4, '0')}-${date!.month.toString().padLeft(2, '0')}-${date!.day.toString().padLeft(2, '0')}",
+    "date": date == null
+        ? null
+        : "${date!.year.toString().padLeft(4, '0')}-${date!.month.toString().padLeft(2, '0')}-${date!.day.toString().padLeft(2, '0')}",
     "narration": narration,
     "debit": debit,
     "credit": credit,
     "currency": currency,
     "reference": reference,
-    "credit_account_name": creditAccountName,
-    "credit_account_number": creditAccountNumber,
+    "contra_account_name": creditAccountName,        // ← fixed
+    "contra_account_number": creditAccountNumber,    // ← fixed
     "transaction_type": transactionType,
     "status": status,
     "running_balance": runningBalance,

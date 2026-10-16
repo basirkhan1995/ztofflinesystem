@@ -7,9 +7,16 @@ sealed class CashBalancesEvent extends Equatable {
 
 class LoadCashBalanceBranchWiseEvent extends CashBalancesEvent {
   final int? branchId;
-  const LoadCashBalanceBranchWiseEvent({this.branchId});
+  final String? from;   // YYYY-MM-DD
+  final String? to;     // YYYY-MM-DD
+
+  const LoadCashBalanceBranchWiseEvent({
+    this.branchId,
+    this.from,
+    this.to,
+  });
   @override
-  List<Object?> get props => [branchId];
+  List<Object> get props => [];
 }
 
 class LoadAllCashBalancesEvent extends CashBalancesEvent {

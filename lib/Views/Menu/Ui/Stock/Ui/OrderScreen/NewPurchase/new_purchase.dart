@@ -467,7 +467,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               _shouldAutoFocusProduct = true;
               // Set supplier name
               if (state.supplier != null) {
-                _personController.text = state.supplier!.perName ?? '';
+                _personController.text =  '${state.supplier!.perName} ${state.supplier!.perLastName}';
                 signatory = state.supplier!.perId;
 
                 company.partyAddress = state.supplier!.addName;
@@ -642,7 +642,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 },
                                 bloc: context.read<IndividualsBloc>(),
                                 fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                                searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
+                                searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
                                 itemBuilder: (context, ind) => Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
@@ -1648,7 +1648,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             invoiceNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
-            customerSupplierName: current?.supplier?.perName ?? "",
+            customerSupplierName: "${current?.supplier?.perName} ${current?.supplier?.perLastName}",
             items: invoiceItems,
             grandTotal: current!.subtotal,
             cashPayment: current.cashPayment,

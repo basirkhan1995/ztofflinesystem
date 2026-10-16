@@ -369,7 +369,7 @@ class _MobileState extends State<_Mobile> {
                                 onPressed: (state is AccStatementLoadingState || accNumber == null)
                                     ? null
                                     : () => _generateAndShowPDF(context),
-                                icon: Icons.picture_as_pdf,
+                                icon: Icons.print,
                                 label: state is AccStatementLoadingState
                                     ? const SizedBox(
                                   width: 20,
@@ -378,7 +378,7 @@ class _MobileState extends State<_Mobile> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                                    : const Text("PDF"),
+                                    : const Text("Print"),
                               ),
                             ),
 
@@ -840,7 +840,10 @@ class _DesktopState extends State<_Desktop> {
               company.comName = auth.company?.comName??"";
               company.comAddress = auth.company?.comAddress??"";
               company.compPhone = auth.company?.comPhone??"";
+              company.comWhatsApp = auth.company?.comWhatsapp??"";
               company.comEmail = auth.company?.comEmail??"";
+              company.comWebsite = auth.company?.comWebsite??"";
+              company.comFacebook = auth.company?.comFb??"";
               company.startDate = fromDate;
               company.endDate = toDate;
               company.statementDate = DateTime.now().toFullDateTime;
@@ -907,8 +910,8 @@ class _DesktopState extends State<_Desktop> {
                               ),
                               SizedBox(width: 8),
                               ZOutlineButton(
-                                  icon: Icons.picture_as_pdf,
-                                  label: Text("PDF"),
+                                  icon: Icons.print_rounded,
+                                  label: Text("Print"),
                                   onPressed: _onPrint
                               ),
                               SizedBox(width: 8),
@@ -1315,22 +1318,6 @@ class _DesktopState extends State<_Desktop> {
       ),
     );
   }
-
-  // void onSubmit(){
-  //   if(accNumber == null){
-  //     ToastManager.show(context: context,
-  //         title: "NO Account Selected",
-  //         message: "Please select an account.", type: ToastType.info);
-  //   }else{
-  //     context.read<AccStatementBloc>().add(
-  //       LoadAccountStatementEvent(
-  //         accountNumber: accNumber!,
-  //         fromDate: fromDate,
-  //         toDate: toDate,
-  //       ),
-  //     );
-  //   }
-  // }
 
   void onSubmit(){
     if(accNumber == null){

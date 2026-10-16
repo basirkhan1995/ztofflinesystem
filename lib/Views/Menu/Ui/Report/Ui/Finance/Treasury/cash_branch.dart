@@ -11,6 +11,7 @@ import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/bloc/cash_balances_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/model/cash_balance_model.dart';
+import '../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../Features/Other/toast.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
@@ -43,9 +44,27 @@ class _DesktopState extends State<_Desktop> {
   String? baseCcy;
   int? branchId;
 
+  // ---- Date filter state ----
+  late String _pickerStart;
+  late String _pickerEnd;
+  String _from = '';
+  String _to   = '';
+
+  String _fmt(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-'
+          '${d.day.toString().padLeft(2, '0')}';
+
   @override
   void initState() {
     super.initState();
+
+    // Default: today only
+    final now = DateTime.now();
+    _pickerStart = _fmt(now);
+    _pickerEnd   = _fmt(now);
+    _from        = _pickerStart;
+    _to          = _pickerEnd;
+
     _loadBalances();
   }
 
@@ -56,8 +75,13 @@ class _DesktopState extends State<_Desktop> {
         branchId = auth.loginData.usrBranch;
         baseCcy = auth.loginData.company?.comLocalCcy;
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           context.read<CashBalancesBloc>().add(
-            LoadCashBalanceBranchWiseEvent(branchId: branchId),
+            LoadCashBalanceBranchWiseEvent(
+              branchId: branchId,
+              from: _from,
+              to: _to,
+            ),
           );
         });
       }
@@ -66,6 +90,72 @@ class _DesktopState extends State<_Desktop> {
     }
   }
 
+  void _reload() {
+    if (_from.isEmpty || _to.isEmpty) return;
+    context.read<CashBalancesBloc>().add(
+      LoadCashBalanceBranchWiseEvent(
+        branchId: branchId,
+        from: _from,
+        to: _to,
+      ),
+    );
+  }
+
+  void _onDateChanged(String start, String end) {
+    setState(() {
+      _pickerStart = start;
+      _pickerEnd   = end;
+      _from        = start;
+      _to          = end;
+    });
+    _reload();
+  }
+
+  // ── Quick range ──────────────────────────────────────────────
+  void _setQuickRange(String key) {
+    final now = DateTime.now();
+    DateTime start;
+    DateTime end;
+
+    switch (key) {
+      case 'today':
+        start = now;
+        end   = now;
+        break;
+      case 'last7':
+        start = now.subtract(const Duration(days: 7));
+        end   = now;
+        break;
+      case 'last30':
+        start = now.subtract(const Duration(days: 30));
+        end   = now;
+        break;
+      default:
+        return;
+    }
+
+    setState(() {
+      _pickerStart = _fmt(start);
+      _pickerEnd   = _fmt(end);
+      _from        = _pickerStart;
+      _to          = _pickerEnd;
+    });
+    _reload();
+  }
+
+  String? _activeQuickRange() {
+    final now    = DateTime.now();
+    final nowStr = _fmt(now);
+    final last7  = _fmt(now.subtract(const Duration(days: 7)));
+    final last30 = _fmt(now.subtract(const Duration(days: 30)));
+
+    if (_from == nowStr  && _to == nowStr)  return 'today';
+    if (_from == last7   && _to == nowStr)  return 'last7';
+    if (_from == last30  && _to == nowStr)  return 'last30';
+    return null;
+  }
+
+  // ---- Print (unchanged) ----
   Future<void> _printBranchBalance() async {
     final state = context.read<CashBalancesBloc>().state;
 
@@ -207,6 +297,9 @@ class _DesktopState extends State<_Desktop> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final activeQuick = _activeQuickRange();
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
@@ -215,11 +308,7 @@ class _DesktopState extends State<_Desktop> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<CashBalancesBloc>().add(
-                LoadCashBalanceBranchWiseEvent(branchId: branchId),
-              );
-            },
+            onPressed: _reload,
           ),
           IconButton(
             icon: const Icon(Icons.print),
@@ -227,7 +316,75 @@ class _DesktopState extends State<_Desktop> {
           ),
         ],
       ),
-      body: _buildContent(),
+      body: Column(
+        children: [
+          // ===================== FILTER BAR =====================
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 6,
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _QuickChip(
+                        label: 'Today',
+                        icon: Icons.today_outlined,
+                        selected: activeQuick == 'today',
+                        onTap: () => _setQuickRange('today'),
+                        scheme: scheme,
+                      ),
+                      _QuickChip(
+                        label: 'Last 7 days',
+                        icon: Icons.calendar_view_week_outlined,
+                        selected: activeQuick == 'last7',
+                        onTap: () => _setQuickRange('last7'),
+                        scheme: scheme,
+                      ),
+                      _QuickChip(
+                        label: 'Last 30 days',
+                        icon: Icons.calendar_view_month_outlined,
+                        selected: activeQuick == 'last30',
+                        onTap: () => _setQuickRange('last30'),
+                        scheme: scheme,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ZRangeDatePicker(
+                    height: 43,
+                    label: 'Date range',
+                    initialStartDate: DateTime.tryParse(_pickerStart),
+                    initialEndDate: DateTime.tryParse(_pickerEnd),
+                    startValue: _pickerStart,
+                    endValue: _pickerEnd,
+                    onStartDateChanged: (s) =>
+                        setState(() => _pickerStart = s),
+                    onEndDateChanged: (e) {
+                      setState(() => _pickerEnd = e);
+                      if (_pickerStart.isNotEmpty && _pickerEnd.isNotEmpty) {
+                        _onDateChanged(_pickerStart, _pickerEnd);
+                      }
+                    },
+                    minYear: 2020,
+                    maxYear: 2100,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ===================== BODY =====================
+          Expanded(child: _buildContent()),
+        ],
+      ),
     );
   }
 
@@ -241,11 +398,7 @@ class _DesktopState extends State<_Desktop> {
           return Center(
             child: NoDataWidget(
               message: state.error,
-              onRefresh: () {
-                context.read<CashBalancesBloc>().add(
-                  LoadCashBalanceBranchWiseEvent(branchId: branchId),
-                );
-              },
+              onRefresh: _reload,
             ),
           );
         }
@@ -303,10 +456,7 @@ class _DesktopState extends State<_Desktop> {
           child: Container(
             decoration: BoxDecoration(
               border: Border(
-                left: BorderSide(
-                  color: Colors.grey.shade300,
-                  width: 1,
-                ),
+                left: BorderSide(color: Colors.grey.shade300, width: 1),
               ),
             ),
             child: branch.transactions != null && branch.transactions!.isNotEmpty
@@ -315,14 +465,10 @@ class _DesktopState extends State<_Desktop> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.history,
-                    size: 64,
-                    color: Colors.grey.shade400,
-                  ),
+                  Icon(Icons.history, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
-                    'No Transactions',
+                    'No Transactions in this range',
                     style: TextStyle(
                       color: Colors.grey.shade600,
                       fontSize: 16,
@@ -379,8 +525,13 @@ class _DesktopState extends State<_Desktop> {
                     setState(() {
                       branchId = newBranchId;
                     });
+                    // Preserve date filter when changing branch
                     context.read<CashBalancesBloc>().add(
-                      LoadCashBalanceBranchWiseEvent(branchId: newBranchId),
+                      LoadCashBalanceBranchWiseEvent(
+                        branchId: newBranchId,
+                        from: _from,
+                        to: _to,
+                      ),
                     );
                   },
                 ),
@@ -394,8 +545,10 @@ class _DesktopState extends State<_Desktop> {
             children: [
               _buildInlineInfo('${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
               _buildInlineInfo('${tr.mobile1}:', branch.brcPhone ?? 'N/A'),
-              _buildInlineInfo('${tr.status}:',
-                  branch.brcStatus == 1 ? tr.active : tr.inactive),
+              _buildInlineInfo(
+                '${tr.status}:',
+                branch.brcStatus == 1 ? tr.active : tr.inactive,
+              ),
               if (branch.address != null && branch.address!.isNotEmpty)
                 _buildInlineInfo('${tr.address}:', branch.address!),
             ],
@@ -434,9 +587,7 @@ class _DesktopState extends State<_Desktop> {
       return Center(
         child: Text(
           'No cash records found',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.outline,
-          ),
+          style: TextStyle(color: Theme.of(context).colorScheme.outline),
         ),
       );
     }
@@ -488,11 +639,7 @@ class _DesktopState extends State<_Desktop> {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 3,
-                    height: 20,
-                    color: currencyColor,
-                  ),
+                  Container(width: 3, height: 20, color: currencyColor),
                   const SizedBox(width: 8),
                   Text(
                     record.ccyName ?? currencyCode,
@@ -530,25 +677,16 @@ class _DesktopState extends State<_Desktop> {
                   children: [
                     Text(
                       tr.opening,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                     ),
                     Text(
                       "${opening.toAmount()} $currencyCode",
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                     ),
                     if (!isBaseCurrency)
                       Text(
                         "${openingSys.toAmount()} $baseCcy",
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade500,
-                        ),
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
                       ),
                   ],
                 ),
@@ -559,10 +697,7 @@ class _DesktopState extends State<_Desktop> {
                   children: [
                     Text(
                       tr.closing,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                     ),
                     Text(
                       "${closing.toAmount()} $currencyCode",
@@ -575,10 +710,7 @@ class _DesktopState extends State<_Desktop> {
                     if (!isBaseCurrency)
                       Text(
                         "${closingSys.toAmount()} $baseCcy",
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade500,
-                        ),
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
                       ),
                   ],
                 ),
@@ -589,10 +721,7 @@ class _DesktopState extends State<_Desktop> {
                   children: [
                     Text(
                       tr.cashFlow,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                     ),
                     Text(
                       "${cashFlow.toAmount()} $currencyCode",
@@ -607,7 +736,9 @@ class _DesktopState extends State<_Desktop> {
                         "${cashFlowSys.toAmount()} $baseCcy",
                         style: TextStyle(
                           fontSize: 10,
-                          color: cashFlowSys >= 0 ? Colors.green.shade600 : Colors.red.shade600,
+                          color: cashFlowSys >= 0
+                              ? Colors.green.shade600
+                              : Colors.red.shade600,
                         ),
                       ),
                   ],
@@ -676,10 +807,7 @@ class _DesktopState extends State<_Desktop> {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
         ),
         Text(
           "${value.toAmount()} ${baseCcy ?? ''}",
@@ -710,12 +838,7 @@ class _DesktopState extends State<_Desktop> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey.shade300,
-                width: 1,
-              ),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.grey.shade300, width: 1)),
           ),
           child: Row(
             children: [
@@ -788,151 +911,171 @@ class _DesktopState extends State<_Desktop> {
     final debit = double.tryParse(txn.debit ?? '0') ?? 0;
     final credit = double.tryParse(txn.credit ?? '0') ?? 0;
     final runningBalance = double.tryParse(txn.runningBalance ?? '0') ?? 0;
+    final isDebit = debit > 0;
+    final amount = isDebit ? debit : credit;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: Colors.grey.shade200,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withValues(alpha: .3)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Text(
-                txn.date != null
-                    ? '${txn.date!.toFormattedDate()} | ${txn.date!.shamsiDateString}'
-                    : 'N/A',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              if (txn.status != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: txn.status == 'Authorized'
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Text(
-                    txn.status!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: txn.status == 'Authorized'
-                          ? Colors.green.shade700
-                          : Colors.orange.shade700,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-            ],
+          // Left: DR/CR indicator strip
+          Container(
+            width: 3,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isDebit ? Colors.green.shade600 : Colors.red.shade600,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(width: 10),
 
-          Row(
-            spacing: 8,
-            children: [
-              if (txn.creditAccountName != null && txn.creditAccountName!.isNotEmpty)...[
+          // Middle: date + account + narration
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  '${txn.creditAccountName} |',
+                  txn.date != null ? txn.date!.toFormattedDate() : 'N/A',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ],
-              Text(
-                txn.narration ?? '',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: Row(
+                const SizedBox(height: 2),
+                Row(
                   children: [
-                    if (debit > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(2),
+                    Flexible(
+                      child: Text(
+                        txn.creditAccountName ?? '-',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (txn.creditAccountNumber != null) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
                         child: Text(
-                          'DR',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.green.shade700,
-                            fontWeight: FontWeight.bold,
+                          '#${txn.creditAccountNumber}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                    if (credit > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        child: Text(
-                          'CR',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.red.shade700,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 4),
-                    Text(
-                      (debit > 0 ? debit : credit).toAmount(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: debit > 0 ? Colors.green.shade700 : Colors.red.shade700,
-                      ),
-                    ),
-                    Text(
-                      ' $currency',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
+                    ],
                   ],
                 ),
-              ),
+                if (txn.narration != null && txn.narration!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    txn.narration!,
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Right: amount + running balance
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
               Text(
-                runningBalance.toAmount(),
+                '${isDebit ? '+' : '-'}${amount.toAmount()} $currency',
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: runningBalance >= 0
-                      ? Colors.blue.shade700
-                      : Colors.red.shade700,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isDebit ? Colors.green.shade700 : Colors.red.shade700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${runningBalance.toAmount()} $currency',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// =====================================================================
+// Quick date-range chip
+// =====================================================================
+class _QuickChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+  final ColorScheme scheme;
+
+  const _QuickChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+    required this.scheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected ? scheme.secondaryContainer : scheme.surfaceContainerLow;
+    final fg = selected ? scheme.onSecondaryContainer : scheme.onSurfaceVariant;
+    final border = selected
+        ? scheme.secondary.withValues(alpha: 0.4)
+        : scheme.outline.withValues(alpha: 0.25);
+
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: fg),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

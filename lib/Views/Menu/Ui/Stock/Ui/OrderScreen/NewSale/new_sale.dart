@@ -1237,7 +1237,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     void addProduct(ProductsStockModel product) {
       if (!mounted) return;
 
-      final salePrice = double.tryParse(product.sellPrice) ?? 0.0;
+      final double salePrice = double.tryParse(product.sellPrice ?? '') ?? 0.0;
       final averagePrice = double.tryParse(product.averagePrice?.toAmount(decimal: 8) ?? "0.0") ?? 0.0;
       final landedPrice = double.tryParse(product.recentLandedPurPrice?.toAmount(decimal: 8) ?? "0.0") ?? 0.0;
       final purchasePrice = double.tryParse(product.recentPurPrice?.toAmount(decimal: 8) ?? "0.0") ?? 0.0;

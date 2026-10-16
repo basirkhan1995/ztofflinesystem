@@ -16,6 +16,7 @@ import '../../../Features/Widgets/textfield_entitled.dart';
 import '../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Localizations/locale_selector.dart';
 import '../../../Themes/Ui/theme_selector.dart';
+import '../Subscription/Ui/renewal.dart';
 import '../server_dialog.dart';
 
 class LoginView extends StatelessWidget {
@@ -539,18 +540,121 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
+
 class _DesktopState extends State<_Desktop> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  // Focus nodes for keyboard navigation
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
+
   bool isPasswordSecure = true;
   bool isRememberMe = false;
 
   final formKey = GlobalKey<FormState>();
 
+  /// Inline error message shown below the form
+  String? _errorMessage;
+  bool _isSubscriptionError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus email when login screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _emailFocus.requestFocus();
+    });
+  }
+  Widget _buildErrorBanner(ThemeData theme) {
+    final isSub = _isSubscriptionError;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: (isSub ? Colors.orange : Colors.red).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: (isSub ? Colors.orange : Colors.red).withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                isSub ? Icons.lock_clock_rounded : Icons.error_outline_rounded,
+                size: 18,
+                color: isSub ? Colors.orange.shade800 : Colors.red.shade700,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isSub ? Colors.orange.shade900 : Colors.red.shade800,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _errorMessage = null;
+                    _isSubscriptionError = false;
+                  });
+                },
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 16,
+                    color:
+                    isSub ? Colors.orange.shade800 : Colors.red.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Renew button — only for subscription errors
+          if (isSub) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                Utils.goto(context, SubscriptionRenewalView());
+                },
+                icon: const Icon(Icons.info_outline_rounded, size: 16),
+                label: const Text('Subscription Info'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.orange.shade900,
+                  side: BorderSide(color: Colors.orange.shade800, width: 1),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -564,9 +668,30 @@ class _DesktopState extends State<_Desktop> {
           if (state is AuthenticatedState) {
             Utils.gotoReplacement(context, HomeView());
           }
+
           if (state is AuthErrorState) {
-            ToastManager.show(context: context,title: tr.accessDenied, message: state.message, type: ToastType.error);
+            setState(() {
+              _errorMessage = state.message;
+              _isSubscriptionError = false;
+            });
+
+            // Re-focus password after rebuild so user can retype and hit Enter
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _passwordFocus.requestFocus();
+            });
           }
+
+          if (state is NoSubscriptionState) {
+            setState(() {
+              _errorMessage = tr.subscriptionExpired;
+              _isSubscriptionError = true;
+            });
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _passwordFocus.requestFocus();
+            });
+          }
+
           if (state is ForceChangePasswordState) {
             Utils.goto(
               context,
@@ -608,14 +733,14 @@ class _DesktopState extends State<_Desktop> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: .5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: .5),
                 ),
               ),
               child: Image.asset('assets/images/zaitoonLogo.png'),
             ),
-
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,15 +756,11 @@ class _DesktopState extends State<_Desktop> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   AppLocalizations.of(context)!.zaitoonSlogan,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     letterSpacing: 0.2,
                     fontWeight: FontWeight.w400,
                   ),
@@ -648,25 +769,31 @@ class _DesktopState extends State<_Desktop> {
             )
           ],
         ),
-        // Header - Localization & Theme Selector
         Row(
           spacing: 5,
-          children: [ThemeSelector(width: 150), LanguageSelector(width: 150),
+          children: [
+            ThemeSelector(width: 150),
+            LanguageSelector(width: 150),
             ZOutlineButton(
               isActive: true,
-              onPressed: (){
-                showDialog(context: context, builder: (context)=> ZFormDialog(
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                    width: MediaQuery.of(context).size.width *.45,
-                    onAction: null,
-                    isActionTrue: false,
-                    icon: Icons.storage_rounded,
-                    title: AppLocalizations.of(context)!.backup,
-                    child: BackupView(),
-                ));
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (context) => ZFormDialog(
+                      backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainer,
+                      width: MediaQuery.of(context).size.width * .45,
+                      onAction: null,
+                      isActionTrue: false,
+                      icon: Icons.storage_rounded,
+                      title: AppLocalizations.of(context)!.backup,
+                      child: BackupView(),
+                    ));
               },
-              icon:Icons.storage_rounded,
-              label: Text("مدیریت پشتیبانی"))],
+              icon: Icons.storage_rounded,
+              label: Text("مدیریت پشتیبانی"),
+            )
+          ],
         ),
       ],
     );
@@ -679,7 +806,6 @@ class _DesktopState extends State<_Desktop> {
 
     return Row(
       children: [
-
         /// ================= RIGHT SIDE (LOGIN) =================
         Expanded(
           flex: 4,
@@ -688,8 +814,6 @@ class _DesktopState extends State<_Desktop> {
               constraints: const BoxConstraints(maxWidth: 420),
               padding: const EdgeInsets.all(25),
               margin: const EdgeInsets.symmetric(horizontal: 40),
-
-              /// ✅ USE BORDER + SOFT SURFACE
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
@@ -698,7 +822,6 @@ class _DesktopState extends State<_Desktop> {
                   width: 0.8,
                 ),
               ),
-
               child: Form(
                 key: formKey,
                 child: Column(
@@ -712,23 +835,24 @@ class _DesktopState extends State<_Desktop> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
                     const SizedBox(height: 6),
-
                     Text(
                       locale.login,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-
                     const SizedBox(height: 30),
 
-                    /// Email
+                    /// Email — Enter moves to Password
                     ZTextFieldEntitled(
                       controller: _emailController,
+                      focusNode: _emailFocus,
                       title: locale.emailOrUsrname,
-                      onFieldSubmitted: (_) => onSubmit(),
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        _passwordFocus.requestFocus();
+                      },
                       validator: (value) {
                         if (value.isEmpty) {
                           return locale.required(locale.emailOrUsrname);
@@ -736,14 +860,15 @@ class _DesktopState extends State<_Desktop> {
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 20),
 
-                    /// Password
+                    /// Password — Enter triggers login
                     ZTextFieldEntitled(
                       controller: _passwordController,
+                      focusNode: _passwordFocus,
                       securePassword: isPasswordSecure,
                       title: locale.password,
+                      textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => onSubmit(),
                       trailing: IconButton(
                         onPressed: () {
@@ -764,10 +889,9 @@ class _DesktopState extends State<_Desktop> {
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 25),
 
-                    /// ✅ YOUR BUTTON
+                    /// Login button
                     ZButton(
                       onPressed: onSubmit,
                       label: isLoading
@@ -781,7 +905,6 @@ class _DesktopState extends State<_Desktop> {
                       )
                           : Text(locale.login),
                     ),
-
                     const SizedBox(height: 15),
 
                     Align(
@@ -801,24 +924,30 @@ class _DesktopState extends State<_Desktop> {
                           final result = await showDialog(
                             context: context,
                             builder: (context) => ZFormDialog(
-                               width: 500,
+                              width: 480,
                               padding: EdgeInsets.all(15),
-                                onAction: null,
-                                icon: Icons.perm_data_setting_rounded,
-                                title: AppLocalizations.of(context)!.connectionSettings,
-                                isActionTrue: false,
-                                child: ServerConnectDialog(),
+                              onAction: null,
+                              icon: Icons.wifi,
+                              title: AppLocalizations.of(context)!
+                                  .connectionSettings,
+                              isActionTrue: false,
+                              child: ServerConnectDialog(),
                             ),
                           );
 
                           if (result == true) {
-                            // Refresh UI or reconnect
                             setState(() {});
                           }
                         },
                         child: Text(locale.connectToServer),
                       ),
                     ),
+
+                    /// ================= INLINE ERROR BANNER =================
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      _buildErrorBanner(theme),
+                    ],
                   ],
                 ),
               ),
@@ -839,14 +968,75 @@ class _DesktopState extends State<_Desktop> {
             ),
           ),
         ),
-
-
       ],
     );
   }
 
+  /// Red inline error banner shown below the Connect-to-Server button
+  // Widget _buildErrorBanner(ThemeData theme) {
+  //   final isSub = _isSubscriptionError;
+  //
+  //   return Container(
+  //     width: double.infinity,
+  //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: (isSub ? Colors.orange : Colors.red).withValues(alpha: 0.08),
+  //       borderRadius: BorderRadius.circular(3),
+  //       border: Border.all(
+  //         color: (isSub ? Colors.orange : Colors.red).withValues(alpha: 0.3),
+  //         width: 1,
+  //       ),
+  //     ),
+  //     child: Row(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Icon(
+  //           isSub ? Icons.lock_clock_rounded : Icons.error_outline_rounded,
+  //           size: 18,
+  //           color: isSub ? Colors.orange.shade800 : Colors.red.shade700,
+  //         ),
+  //         const SizedBox(width: 8),
+  //         Expanded(
+  //           child: Text(
+  //             _errorMessage!,
+  //             style: TextStyle(
+  //               fontSize: 13,
+  //               color: isSub ? Colors.orange.shade900 : Colors.red.shade800,
+  //               fontWeight: FontWeight.w500,
+  //             ),
+  //           ),
+  //         ),
+  //         // Dismiss button
+  //         InkWell(
+  //           onTap: () {
+  //             setState(() {
+  //               _errorMessage = null;
+  //               _isSubscriptionError = false;
+  //             });
+  //           },
+  //           borderRadius: BorderRadius.circular(4),
+  //           child: Padding(
+  //             padding: const EdgeInsets.all(2),
+  //             child: Icon(
+  //               Icons.close_rounded,
+  //               size: 16,
+  //               color: isSub ? Colors.orange.shade800 : Colors.red.shade700,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   void onSubmit() {
     if (formKey.currentState!.validate()) {
+      // Clear previous error on each attempt
+      setState(() {
+        _errorMessage = null;
+        _isSubscriptionError = false;
+      });
+
       context.read<AuthBloc>().add(
         LoginEvent(
           usrName: _emailController.text.trim(),

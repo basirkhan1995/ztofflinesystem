@@ -9,7 +9,11 @@ import 'package:pdf/pdf.dart' as pw;
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 
 class _ArtelColors {
-  static const pw.PdfColor primary      = pw.PdfColor.fromInt(0xFF2E7D32); // green 800
+  static const pw.PdfColor primary      = pw.PdfColor.fromInt(0xFF2E7D32);
+  static const pw.PdfColor primaryDark  = pw.PdfColor.fromInt(0xFF1B5E20);
+  static const pw.PdfColor primaryLight = pw.PdfColor.fromInt(0xFFE8F5E9);
+  static const pw.PdfColor border       = pw.PdfColor.fromInt(0xFFA5D6A7);
+  static const pw.PdfColor divider = pw.PdfColor.fromInt(0xFF81C784);
 }
 
 abstract class PrintServices {
@@ -146,27 +150,21 @@ abstract class PrintServices {
     final phoneIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/phone.png')).buffer.asUint8List(),
     );
-
     final whatsappIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/whatsapp.png')).buffer.asUint8List(),
     );
-
     final emailIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/email.png')).buffer.asUint8List(),
     );
-
     final websiteIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/internet.png')).buffer.asUint8List(),
     );
-
     final instagramIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/instagram.png')).buffer.asUint8List(),
     );
-
     final facebookIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/facebook.png')).buffer.asUint8List(),
     );
-
     final addressIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/location.png')).buffer.asUint8List(),
     );
@@ -180,93 +178,91 @@ abstract class PrintServices {
     if (hasCompanyLogo) {
       logoImage = pw.MemoryImage(report.comLogo!);
     }
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Row(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            /// 🔸 LEFT SIDE (Logo + Company Info)
-            pw.Expanded(
-              flex: 3,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  /// ✅ Logo ABOVE name
-                  if (logoImage != null)
-                    pw.Container(
-                      width: 100,
-                      height: 100,
-                      child: pw.Image(logoImage, fit: pw.BoxFit.contain),
-                    ),
-
-                  /// Company Name
-                  zText(
-                    text: report.comName ?? "",
-                    fontSize: 20,
-                    tightBounds: true,
-                    fontWeight: pw.FontWeight.bold,
+    // ─────────────────────────────────────────────────────────
+    //  Header content (unchanged layout)
+    // ─────────────────────────────────────────────────────────
+    final content = pw.Padding(
+      padding: const pw.EdgeInsets.fromLTRB(14, 12, 14, 12),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          /// 🔸 LEFT SIDE (Logo + Company Info)
+          pw.Expanded(
+            flex: 3,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                /// ✅ Logo ABOVE name
+                if (logoImage != null)
+                  pw.Container(
+                    width: 140,
+                    height: 140,
+                    child: pw.Image(logoImage, fit: pw.BoxFit.contain),
                   ),
 
-                  /// Slogan
-                  if (report.slogan != null && report.slogan!.isNotEmpty)
-                    zText(
-                      text: report.slogan!,
-                      fontSize: 11,
-                      color: pw.PdfColors.blueGrey,
-                    ),
+                /// Company Name
+                zText(
+                  text: report.comName ?? "",
+                  fontSize: 25,
+                  tightBounds: true,
+                  fontWeight: pw.FontWeight.bold,
+                ),
 
-                  /// Address
-                  if (report.comAddress != null && report.comAddress!.isNotEmpty)...[
-                    pw.Row(
-                      children: [
-                        pw.Image(addressIcon, width: 10, height: 10),
-                        pw.SizedBox(width: 2),
-                        zText(
-                          text: report.comAddress!,
-                          fontSize: 10,
-                          color: pw.PdfColors.grey900,
-                        ),
-                      ]
-                    )
-                  ],
+                /// Slogan
+                if (report.slogan != null && report.slogan!.isNotEmpty)
+                  zText(
+                    text: report.slogan!,
+                    fontSize: 11,
+                    color: pw.PdfColors.blueGrey,
+                  ),
 
-                ],
-              ),
-            ),
-
-            /// 🔸 RIGHT SIDE (Contacts with icons on RIGHT)
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
-
-                  /// 📞 Phone (icon on RIGHT)
+                /// Address
+                if (report.comAddress != null &&
+                    report.comAddress!.isNotEmpty) ...[
                   pw.Row(
-                    mainAxisSize: pw.MainAxisSize.min,
                     children: [
+                      pw.Image(addressIcon, width: 10, height: 10),
+                      pw.SizedBox(width: 2),
                       zText(
-                        text: report.compPhone??"",
-                        fontSize: 9,
-                        fontWeight: pw.FontWeight.bold,
+                        text: report.comAddress!,
+                        fontSize: 11,
                         color: pw.PdfColors.grey900,
                       ),
-                      pw.SizedBox(width: 4),
-                      pw.Image(phoneIcon, width: 11, height: 11),
                     ],
-                  ),
+                  )
+                ],
+              ],
+            ),
+          ),
 
-                 if (report.comWhatsApp != null && report.comWhatsApp!.isNotEmpty) ...[
+          /// 🔸 RIGHT SIDE (Contacts with icons on RIGHT)
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
+                pw.Row(
+                  mainAxisSize: pw.MainAxisSize.min,
+                  children: [
+                    zText(
+                      text: report.compPhone ?? "",
+                      fontSize: 9,
+                      fontWeight: pw.FontWeight.bold,
+                      color: pw.PdfColors.grey900,
+                    ),
+                    pw.SizedBox(width: 4),
+                    pw.Image(phoneIcon, width: 11, height: 11),
+                  ],
+                ),
+
+                if (report.comWhatsApp != null &&
+                    report.comWhatsApp!.isNotEmpty) ...[
                   pw.SizedBox(height: 3),
-
-                  /// 💬 WhatsApp
                   pw.Row(
                     mainAxisSize: pw.MainAxisSize.min,
                     children: [
                       zText(
-                        text: report.comWhatsApp??"",
+                        text: report.comWhatsApp ?? "",
                         fontSize: 9,
                         color: pw.PdfColors.grey900,
                       ),
@@ -275,86 +271,176 @@ abstract class PrintServices {
                     ],
                   ),
                 ],
-                ],
-                /// Facebook
-                if (report.comFacebook != null && report.comFacebook!.isNotEmpty)...[
-                  pw.SizedBox(height: 3),
-                  pw.Row(
-                      children: [
-                        zText(
-                          text: report.comFacebook!,
-                          fontSize: 10,
-                          color: pw.PdfColors.grey900,
-                        ),
-                        pw.SizedBox(width: 4),
-                        pw.Image(facebookIcon, width: 10, height: 10),
-                      ]
-                  )
-                ],
-
-                /// Instagram
-                if (report.comInstagram != null && report.comInstagram!.isNotEmpty)...[
-                  pw.SizedBox(height: 3),
-                  pw.Row(
-                      children: [
-                        zText(
-                          text: report.comInstagram!,
-                          fontSize: 10,
-                          color: pw.PdfColors.grey900,
-                        ),
-                        pw.SizedBox(width: 4),
-                        pw.Image(instagramIcon, width: 10, height: 10),
-                      ]
-                  )
-                ],
-
-
-                /// Website
-                if (report.comWebsite != null && report.comWebsite!.isNotEmpty)...[
-                  pw.SizedBox(height: 3),
-                  pw.Row(
-                      children: [
-                        zText(
-                          text: report.comWebsite!,
-                          fontSize: 10,
-                          color: pw.PdfColors.grey900,
-                        ),
-                        pw.SizedBox(width: 4),
-                        pw.Image(websiteIcon, width: 10, height: 10),
-                      ]
-                  )
-                ],
-
-                if (report.comEmail != null && report.comEmail!.isNotEmpty) ...[
-                  pw.SizedBox(height: 3),
-                  /// ✉️ Email
-                  pw.Row(
-                    mainAxisSize: pw.MainAxisSize.min,
-                    children: [
-                      zText(
-                        text: report.comEmail!,
-                        fontSize: 9,
-                        color: pw.PdfColors.grey900,
-                      ),
-                      pw.SizedBox(width: 3),
-                      pw.Image(emailIcon, width: 11, height: 11),
-                    ],
-                  ),
-                ],
               ],
+
+              /// Facebook
+              if (report.comFacebook != null &&
+                  report.comFacebook!.isNotEmpty) ...[
+                pw.SizedBox(height: 3),
+                pw.Row(
+                  children: [
+                    zText(
+                      text: report.comFacebook!,
+                      fontSize: 10,
+                      color: pw.PdfColors.grey900,
+                    ),
+                    pw.SizedBox(width: 4),
+                    pw.Image(facebookIcon, width: 10, height: 10),
+                  ],
+                )
+              ],
+
+              /// Instagram
+              if (report.comInstagram != null &&
+                  report.comInstagram!.isNotEmpty) ...[
+                pw.SizedBox(height: 3),
+                pw.Row(
+                  children: [
+                    zText(
+                      text: report.comInstagram!,
+                      fontSize: 10,
+                      color: pw.PdfColors.grey900,
+                    ),
+                    pw.SizedBox(width: 4),
+                    pw.Image(instagramIcon, width: 10, height: 10),
+                  ],
+                )
+              ],
+
+              /// Website
+              if (report.comWebsite != null &&
+                  report.comWebsite!.isNotEmpty) ...[
+                pw.SizedBox(height: 3),
+                pw.Row(
+                  children: [
+                    zText(
+                      text: report.comWebsite!,
+                      fontSize: 10,
+                      color: pw.PdfColors.grey900,
+                    ),
+                    pw.SizedBox(width: 4),
+                    pw.Image(websiteIcon, width: 10, height: 10),
+                  ],
+                )
+              ],
+
+              if (report.comEmail != null && report.comEmail!.isNotEmpty) ...[
+                pw.SizedBox(height: 3),
+                pw.Row(
+                  mainAxisSize: pw.MainAxisSize.min,
+                  children: [
+                    zText(
+                      text: report.comEmail!,
+                      fontSize: 9,
+                      color: pw.PdfColors.grey900,
+                    ),
+                    pw.SizedBox(width: 3),
+                    pw.Image(emailIcon, width: 11, height: 11),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+
+    // ─────────────────────────────────────────────────────────
+    //  Compose: corner decorations + content
+    // ─────────────────────────────────────────────────────────
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Stack(
+          children: [
+            /// Main bordered container (acts as the header "card")
+            pw.Container(
+              width: double.infinity,
+              decoration: pw.BoxDecoration(
+                color: pw.PdfColors.white,
+                border: pw.Border.all(
+                  color: _ArtelColors.divider,
+                  width: 0.6,
+                ),
+                borderRadius: pw.BorderRadius.circular(2),
+              ),
+              child: content,
+            ),
+
+            // /// ── Top-left corner triangle ──
+            // pw.Positioned(
+            //   top: 0,
+            //   left: 0,
+            //   child: cornerTriangle(
+            //     topLeft: true,
+            //     color: _ArtelColors.primary,
+            //     size: 42,
+            //   ),
+            // ),
+            //
+            // /// ── Top-right corner triangle (lighter) ──
+            // pw.Positioned(
+            //   top: 0,
+            //   right: 0,
+            //   child: cornerTriangle(
+            //     topLeft: false,
+            //     color: _ArtelColors.primaryDark,
+            //     size: 42,
+            //   ),
+            // ),
+
+            /// ── Small dot accent, bottom-left ──
+            pw.Positioned(
+              bottom: 6,
+              left: 10,
+              child: pw.Container(
+                width: 6,
+                height: 6,
+                decoration: pw.BoxDecoration(
+                  color: _ArtelColors.primary,
+                  shape: pw.BoxShape.circle,
+                ),
+              ),
+            ),
+            pw.Positioned(
+              bottom: 6,
+              left: 20,
+              child: pw.Container(
+                width: 6,
+                height: 6,
+                decoration: pw.BoxDecoration(
+                  color: _ArtelColors.primaryLight,
+                  shape: pw.BoxShape.circle,
+                ),
+              ),
+            ),
+
+            /// ── Bottom gradient strip ──
+            pw.Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: pw.Container(
+                height: 3,
+                decoration: pw.BoxDecoration(
+                  borderRadius: const pw.BorderRadius.only(
+                    bottomLeft: pw.Radius.circular(2),
+                    bottomRight: pw.Radius.circular(2),
+                  ),
+                  gradient: pw.LinearGradient(
+                    colors: [
+                      _ArtelColors.primaryDark,
+                      _ArtelColors.primary,
+                      _ArtelColors.border,
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
-        pw.SizedBox(height: 5),
-        /// Green accent bar above header
-        pw.Container(
-          height: 3,
-          width: double.infinity,
-          decoration: pw.BoxDecoration(
-            color: _ArtelColors.primary,
-            borderRadius: pw.BorderRadius.circular(1),
-          ),
-        ),
+
         pw.SizedBox(height: 6),
       ],
     );
@@ -618,7 +704,26 @@ abstract class PrintServices {
 
   String tr({required String text, required String tr}) {
     const translation = {
-
+      "termsAndConditionTitle": {
+        "en": "Terms & Conditions",
+        "ar": "شرایط و مقررات",
+        "fa": "شرایط و مقررات"
+      },
+      "termsAndCondition1": {
+        "en": "All electronic devices come with a warranty and guarantee in accordance with the company's policy.",
+        "ar": "همه وسایل الکترونیکی دارای ورنتی و گرنتی مطابق لایحه کمپنی میباشد.",
+        "fa": "همه وسایل الکترونیکی دارای ورنتی و گرنتی مطابق لایحه کمپنی میباشد."
+      },
+      "termsAndCondition2": {
+        "en": "This document is not valid without a stamp and signature.",
+        "ar": "سند هذا بدون مهر و امضاء اعتبار ندارد.",
+        "fa": "سند هذا بدون مهر و امضاء اعتبار ندارد."
+      },
+      "termsAndCondition3": {
+        "en": "Sold items cannot be returned.",
+        "ar": "جنس فروخته شده واپس گرفته نمیشود.",
+        "fa": "جنس فروخته شده واپس گرفته نمیشود."
+      },
       "debitEntries": {
         "en": "Debit Entries",
         "ar": "د بدهکار ننوتل",
@@ -887,7 +992,7 @@ abstract class PrintServices {
         "ar":"خالص بیلانس"
       },
       'statementAccount' : {
-        'en':"Statement of Account",
+        'en':"Account Statement",
         'fa':"صورتحساب",
         "ar":"صورتحساب"
       },
@@ -1339,7 +1444,7 @@ abstract class PrintServices {
         'ar':'بل نوع',
       },
       'PUR':{
-        'en':'Purchase',
+        'en':'PURCHASE',
         'fa':'خرید',
         'ar':'خرید',
       },
@@ -1349,12 +1454,12 @@ abstract class PrintServices {
         'ar':'بل نیته',
       },
       'SEL':{
-        'en':'Sale',
+        'en':'SALE',
         'fa':'فروش',
         'ar':'فروش',
       },
       'invoiceNumber':{
-        'en':'INV',
+        'en':'INVOICE',
         'fa':'نمبر بل',
         'ar':'بل نمبر',
       },
@@ -1764,7 +1869,7 @@ abstract class PrintServices {
         'ar': 'نقدي رسید'
       },
       'totalQty': {
-        'en': 'Total Items',
+        'en': 'Total Qty',
         'fa': 'کل تعداد',
         'ar': 'کل تعداد',
       },
@@ -2022,12 +2127,12 @@ abstract class PrintServices {
       'totalItems': {
         'en': 'Total Items',
         'fa': 'تعداد کالاها',
-        'ar': 'إجمالي العناصر',
+        'ar': 'تعداد کالاها',
       },
       'totalQuantity': {
         'en': 'Total Qty',
-        'fa': 'مجموعه مقدار',
-        'ar': 'کل مقدار',
+        'fa': 'کل تعداد',
+        'ar': 'کل تعداد',
       },
       'totalValue': {
         'en': 'Total Value',

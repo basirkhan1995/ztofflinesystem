@@ -432,7 +432,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get referenceTransaction => 'معامله - مرجع';
 
   @override
-  String get balanceSheet => 'ترازنامه';
+  String get balanceSheet => 'بیلانس شیت';
 
   @override
   String get activities => 'فعالیت ها';
