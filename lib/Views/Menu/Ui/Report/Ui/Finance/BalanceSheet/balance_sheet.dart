@@ -244,12 +244,15 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
 
   // Main section title (Assets / Liabilities & Equity)
   Widget _buildMainTitle(BuildContext context, String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.outline,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 22, // 👈 was 20
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.outline,
+        ),
       ),
     );
   }
@@ -259,68 +262,71 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
     final currentYear = DateTime.now().year;
     final lastYear = currentYear - 1;
 
-    return Row(
-      children: [
-        Expanded(flex: 4, child: Container()),
-        Expanded(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                t.currentYear,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .8),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Row(
+        children: [
+          Expanded(flex: 4, child: Container()),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  t.currentYear,
+                  style: TextStyle(
+                    fontSize: 12, // 👈 was 11
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .8),
+                  ),
                 ),
-              ),
-              Text(
-                currentYear.toString(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                Text(
+                  currentYear.toString(),
+                  style: TextStyle(
+                    fontSize: 13, // 👈 was 12
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                t.lastYear,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .8),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  t.lastYear,
+                  style: TextStyle(
+                    fontSize: 12, // 👈 was 11
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .8),
+                  ),
                 ),
-              ),
-              Text(
-                lastYear.toString(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                Text(
+                  lastYear.toString(),
+                  style: TextStyle(
+                    fontSize: 13, // 👈 was 12
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   // Subsection title (grey)
   Widget _buildSubSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 5),
       child: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontSize: 17, // 👈 was 16
         ),
       ),
     );
@@ -442,16 +448,25 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
   Widget _buildTableRow(BuildContext context, String name, double currentYear, double lastYear, String? currency) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
       child: Row(
         children: [
-          Expanded(flex: 4, child: Text(name)),
+          Expanded(
+            flex: 4,
+            child: Text(
+              name,
+              style: const TextStyle(fontSize: 15), // 👈 explicit 15
+            ),
+          ),
           Expanded(
             flex: 3,
             child: Text(
               formatNumber(currentYear, currency),
               textAlign: TextAlign.end,
-              style: TextStyle(color: currentYear < 0 ? theme.colorScheme.error : theme.colorScheme.outline),
+              style: TextStyle(
+                fontSize: 15, // 👈 explicit 15
+                color: currentYear < 0 ? theme.colorScheme.error : theme.colorScheme.outline,
+              ),
             ),
           ),
           Expanded(
@@ -459,7 +474,10 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
             child: Text(
               formatNumber(lastYear, currency),
               textAlign: TextAlign.end,
-              style: TextStyle(color: lastYear < 0 ? theme.colorScheme.error : theme.colorScheme.outline),
+              style: TextStyle(
+                fontSize: 15, // 👈 explicit 15
+                color: lastYear < 0 ? theme.colorScheme.error : theme.colorScheme.outline,
+              ),
             ),
           ),
         ],
@@ -473,20 +491,31 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
     final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 5),
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 5),
       color: backgroundColor ?? theme.colorScheme.surfaceContainerHighest.withAlpha(128),
       child: Row(
         children: [
-          Expanded(flex: 4, child: Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold,
-                  color: foregroundColor ?? Theme.of(context).colorScheme.onSurface))),
+          Expanded(
+            flex: 4,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 15, // 👈 explicit 15
+                fontWeight: FontWeight.bold,
+                color: foregroundColor ?? Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
           Expanded(
             flex: 3,
             child: Text(
               formatNumber(currentTotal, currency),
               textAlign: TextAlign.end,
-              style: TextStyle(fontWeight: FontWeight.bold,
-                  color: currentTotal < 0 ? theme.colorScheme.error : foregroundColor ?? theme.colorScheme.primary),
+              style: TextStyle(
+                fontSize: 15, // 👈 explicit 15
+                fontWeight: FontWeight.bold,
+                color: currentTotal < 0 ? theme.colorScheme.error : foregroundColor ?? theme.colorScheme.primary,
+              ),
             ),
           ),
           Expanded(
@@ -494,8 +523,11 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
             child: Text(
               formatNumber(lastTotal, currency),
               textAlign: TextAlign.end,
-              style: TextStyle(fontWeight: FontWeight.bold,
-                  color: lastTotal < 0 ? theme.colorScheme.error : foregroundColor ?? theme.colorScheme.primary),
+              style: TextStyle(
+                fontSize: 15, // 👈 explicit 15
+                fontWeight: FontWeight.bold,
+                color: lastTotal < 0 ? theme.colorScheme.error : foregroundColor ?? theme.colorScheme.primary,
+              ),
             ),
           ),
         ],
@@ -725,14 +757,14 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
         children: [
           Icon(
             Icons.folder_open,
-            size: 18,
+            size: 20, // 👈 was 18
             color: color,
           ),
           const SizedBox(width: 8),
           Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20, // 👈 was 18
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -744,12 +776,12 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
 
   Widget _buildMobileSubSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8, top: 12, bottom: 4),
+      padding: const EdgeInsets.only(left: 5, right: 5, top: 12, bottom: 4),
       child: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w600,
-          fontSize: 16,
+          fontSize: 17, // 👈 was 16
           color: Theme.of(context).colorScheme.outline,
         ),
       ),
@@ -841,7 +873,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
     final color = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
+      margin: const EdgeInsets.only(bottom: 4, left: 5, right: 5),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.surface,
@@ -854,7 +886,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
           Expanded(
             child: Text(
               name,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 15), // 👈 was 14
             ),
           ),
           Container(
@@ -868,7 +900,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: amount >= 0 ? Colors.green : color.error,
-                fontSize: 13,
+                fontSize: 14, // 👈 was 13
               ),
             ),
           ),
@@ -881,7 +913,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
     final color = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8, left: 8),
+      margin: const EdgeInsets.only(bottom: 8, left: 5, right: 5),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -891,6 +923,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: color.outline,
+              fontSize: 15, // 👈 explicit
             ),
           ),
           Text(
@@ -898,6 +931,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: color.primary,
+              fontSize: 15, // 👈 explicit
             ),
           ),
         ],
@@ -909,7 +943,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
     final color = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.primary.withValues(alpha: .1),
@@ -924,7 +958,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: color.primary,
-              fontSize: 16,
+              fontSize: 17, // 👈 was 16
             ),
           ),
           Text(
@@ -932,7 +966,7 @@ class _MobileBalanceSheetState extends State<_MobileBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: color.primary,
-              fontSize: 16,
+              fontSize: 17, // 👈 was 16
             ),
           ),
         ],
@@ -1173,14 +1207,14 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
         children: [
           Icon(
             Icons.folder_open,
-            size: 20,
+            size: 22, // 👈 was 20
             color: color,
           ),
           const SizedBox(width: 8),
           Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20, // 👈 was 18
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -1208,12 +1242,12 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
 
       sections.add(
         Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 4),
+          padding: const EdgeInsets.only(top: 8, bottom: 4, left: 5, right: 5),
           child: Text(
             title,
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 15,
+              fontSize: 16, // 👈 was 15
               color: Theme.of(context).colorScheme.outline,
             ),
           ),
@@ -1258,12 +1292,12 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
 
       sections.add(
         Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 4),
+          padding: const EdgeInsets.only(top: 8, bottom: 4, left: 5, right: 5),
           child: Text(
             title,
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 15,
+              fontSize: 16, // 👈 was 15
               color: Theme.of(context).colorScheme.outline,
             ),
           ),
@@ -1299,7 +1333,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
     final color = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 2),
+      margin: const EdgeInsets.only(bottom: 2, left: 5, right: 5),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1307,7 +1341,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
           Expanded(
             child: Text(
               name,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 14), // 👈 was 13
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -1322,7 +1356,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: amount >= 0 ? Colors.green : color.error,
-                fontSize: 12,
+                fontSize: 13, // 👈 was 12
               ),
             ),
           ),
@@ -1335,7 +1369,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
     final color = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 4, left: 4),
+      margin: const EdgeInsets.only(bottom: 4, left: 5, right: 5),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         border: Border(
@@ -1350,7 +1384,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: color.outline,
-              fontSize: 13,
+              fontSize: 14, // 👈 was 13
             ),
           ),
           Text(
@@ -1358,7 +1392,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: color.primary,
-              fontSize: 13,
+              fontSize: 14, // 👈 was 13
             ),
           ),
         ],
@@ -1370,7 +1404,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
     final color = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color.primary.withValues(alpha: .1),
@@ -1384,7 +1418,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: color.primary,
-              fontSize: 14,
+              fontSize: 15, // 👈 was 14
             ),
           ),
           Text(
@@ -1392,7 +1426,7 @@ class _TabletBalanceSheetState extends State<_TabletBalanceSheet> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: color.primary,
-              fontSize: 14,
+              fontSize: 15, // 👈 was 14
             ),
           ),
         ],

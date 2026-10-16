@@ -42,10 +42,9 @@ class _DesktopState extends State<_Desktop> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: scheme.surface,
+      backgroundColor: Colors.transparent,
       body: Row(
         children: [
           SingleChildScrollView(
@@ -301,7 +300,7 @@ class _ContactTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
@@ -407,7 +406,7 @@ class _TeamSection extends StatelessWidget {
                 SizedBox(
                   width: itemW,
                   child: const _TeamCard(
-                    image: 'assets/images/basir.jpeg',
+                    image: 'assets/images/basir.png',
                     name: 'Basir Hashimi',
                     role: 'Software & App Developer',
                     description:
@@ -475,7 +474,7 @@ class _TeamCardState extends State<_TeamCard> {
               : null,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(5),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -483,12 +482,12 @@ class _TeamCardState extends State<_TeamCard> {
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   widget.image,
-                  width: 76,
-                  height: 76,
+                  width: 130,
+                  height: 130,
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => Container(
-                    width: 76,
-                    height: 76,
+                    width: 130,
+                    height: 130,
                     color: scheme.primaryContainer,
                     alignment: Alignment.center,
                     child: Icon(
