@@ -42,7 +42,6 @@ class _DesktopState extends State<_Desktop> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Row(
