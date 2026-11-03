@@ -679,20 +679,14 @@ class Repositories {
 
     return [];
   }
-
-  Future<Map<String, dynamic>> addEmployee({
-    required EmployeeModel newEmployee,
-  }) async {
+  Future<Map<String, dynamic>> addEmployee({required EmployeeModel newEmployee,}) async {
     final response = await api.post(
       endpoint: "/HR/employees.php",
       data: newEmployee.toMap(),
     );
     return response.data;
   }
-
-  Future<Map<String, dynamic>> updateEmployee({
-    required EmployeeModel newEmployee,
-  }) async {
+  Future<Map<String, dynamic>> updateEmployee({required EmployeeModel newEmployee,}) async {
     final response = await api.put(
       endpoint: "/HR/employees.php",
       data: newEmployee.toMap(),
@@ -2833,6 +2827,21 @@ class Repositories {
   }
 
   ///Back up ...................................................................
+  static String get mysqlPath {
+    // Add more flexibility here
+    final paths = [
+      'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysql.exe',
+      'C:\\laragon\\bin\\mysql\\mysql-8.0.31-winx64\\bin\\mysql.exe',
+      'C:\\xampp\\mysql\\bin\\mysql.exe',
+    ];
+
+    for (var path in paths) {
+      if (File(path).existsSync()) {
+        return path;
+      }
+    }
+    return 'C:\\xampp\\mysql\\bin\\mysql.exe'; // fallback
+  }
   Future<Directory> _getBackupBaseDirectory() async {
     if (Platform.isAndroid) {
       final dir = Directory('/storage/emulated/0/Download');
@@ -2920,21 +2929,6 @@ class Repositories {
 
       throw Exception('Failed to rename backup: $e');
     }
-  }
-  static String get mysqlPath {
-    // Add more flexibility here
-    final paths = [
-      'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysql.exe',
-      'C:\\laragon\\bin\\mysql\\mysql-8.0.31-winx64\\bin\\mysql.exe',
-      'C:\\xampp\\mysql\\bin\\mysql.exe',
-    ];
-
-    for (var path in paths) {
-      if (File(path).existsSync()) {
-        return path;
-      }
-    }
-    return 'C:\\xampp\\mysql\\bin\\mysql.exe'; // fallback
   }
   Future<void> deleteBackup(String filePath) async {
     final file = File(filePath);
@@ -3076,7 +3070,6 @@ class Repositories {
       throw Exception('Failed to open backup folder: $e');
     }
   }
-
   Future<List<FileSystemEntity>> getBackupFiles({int? limit = 10}) async {
     try {
       final baseDir = await _getBackupBaseDirectory();

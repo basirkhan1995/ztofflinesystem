@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
@@ -20,6 +19,7 @@ import '../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';
+import '../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import 'Print/txn_print.dart';
 import 'model/txn_ref_model.dart';
 
@@ -202,7 +202,7 @@ class _MobileTxnReferenceViewState extends State<_MobileTxnReferenceView> {
 
                             // Transaction Details Grid
                             _buildDetailRow(locale.referenceNumber, state.transaction.trnReferenceText, context),
-                            _buildDetailRow(locale.date, state.transaction.trnEntryDate!.toFullDateTime, context),
+                            _buildDetailRow(locale.date, state.transaction.trnEntryDate!.shamsiDateString, context),
                             _buildDetailRow(locale.accountNumber, state.transaction.accountText, context),
                             _buildDetailRow(locale.accountName, state.transaction.accNameText, context),
                             _buildDetailRow(locale.branch, state.transaction.branchText, context),
@@ -604,7 +604,8 @@ class _DesktopState extends State<_Desktop> {
                       final bool isAlreadyDeleted = loadedTxn?.trnStatusText == "Deleted";
                       final bool isAuthorized = loadedTxn?.trnStatusText == "Authorized";
 
-
+                      final visibility = context.watch<SettingsVisibleBloc>().state;
+                      bool isGre = visibility.dateType == DateType.gregorian;
                       final bool showAuthorizeButton = loadedTxn?.trnStatus == 0 && login.usrName != loadedTxn?.maker;
                       final bool showReverseButton = loadedTxn?.trnStatus == 1 && loadedTxn?.maker == login.usrName;
                       final bool showUpdateButton = loadedTxn?.trnStatus == 0 && loadedTxn?.maker == login.usrName;
@@ -685,7 +686,7 @@ class _DesktopState extends State<_Desktop> {
                                       spacing: 3,
                                       children: [
                                         Text(state.transaction.trnReferenceText, style: textTheme.titleSmall?.copyWith(color: color.secondary)),
-                                        Text(state.transaction.trnEntryDate!.toFullDateTime, style: textTheme.titleSmall?.copyWith(color: color.secondary)),
+                                        Text(isGre? state.transaction.trnEntryDate!.toFormattedDate() : state.transaction.trnEntryDate!.shamsiDateString, style: textTheme.titleSmall?.copyWith(color: color.secondary)),
                                         Text(state.transaction.accountText, style: textTheme.titleSmall?.copyWith(color: color.secondary)),
                                         Text(state.transaction.accNameText, style: textTheme.titleSmall?.copyWith(color: color.secondary)),
                                         Text("${state.transaction.amountText.toAmount()} ${state.transaction.currencyText}", style: textTheme.titleSmall?.copyWith(color: color.secondary)),

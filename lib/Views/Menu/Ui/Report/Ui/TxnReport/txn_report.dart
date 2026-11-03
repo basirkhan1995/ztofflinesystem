@@ -23,6 +23,7 @@ import '../../../Journal/Ui/ProjectTxn/bloc/project_txn_bloc.dart';
 import '../../../Journal/Ui/ProjectTxn/project_txn.dart';
 import '../../../Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
 import '../../../Journal/Ui/TxnByReference/txn_reference.dart';
+import '../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
 import '../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import '../UserReport/status_drop.dart';
@@ -849,7 +850,7 @@ class _DesktopState extends State<_Desktop> {
   Widget build(BuildContext context) {
     TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.surface);
     final tr = AppLocalizations.of(context)!;
-
+    final visibility = context.watch<SettingsVisibleBloc>().state;
     return MultiBlocListener(
       listeners: [
         BlocListener<ProjectTxnBloc, ProjectTxnState>(
@@ -1213,9 +1214,9 @@ class _DesktopState extends State<_Desktop> {
                                 children: [
                                   SizedBox(
                                       width: 100,
-                                      child: Text(txn.timing?.toFormattedDate() ?? "")),
+                                      child: Text(visibility.dateType == DateType.gregorian? txn.timing.toFormattedDate() : txn.timing?.shamsiDateString ?? "")),
                                   SizedBox(
-                                      width: 180,
+                                      width: 200,
                                       child: Row(
                                         children: [
                                           if (isLoadingThisItem)

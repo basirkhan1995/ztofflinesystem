@@ -1445,8 +1445,7 @@ class _MobileViewState extends State<_MobileView> {
                                                   ],
                                                 ),
                                               ),
-                                            if (debitAccName != null &&
-                                                debitAccName!.isNotEmpty)
+                                            if (debitAccName != null && debitAccName!.isNotEmpty)
                                               Container(
                                                 padding: EdgeInsets.symmetric(
                                                   horizontal: 5,

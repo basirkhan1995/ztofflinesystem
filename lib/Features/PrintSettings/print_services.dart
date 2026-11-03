@@ -35,13 +35,13 @@ abstract class PrintServices {
     try {
       // Load regular font
       final ByteData englishRegularData = await rootBundle.load(
-        'assets/fonts/OpenSans/OpenSans-Regular.ttf',
+        'assets/fonts/Vazir/Vazirmatn-Regular.ttf',
       );
       _englishRegular = pw.Font.ttf(englishRegularData);
 
       // Load bold font
       final ByteData englishBoldData = await rootBundle.load(
-        'assets/fonts/OpenSans/OpenSans-Bold.ttf',
+        'assets/fonts/Vazir/Vazirmatn-Bold.ttf',
       );
       _englishBold = pw.Font.ttf(englishBoldData);
     } catch (e) {
@@ -70,13 +70,13 @@ abstract class PrintServices {
     try {
       // Load regular font
       final ByteData persianRegularData = await rootBundle.load(
-        'assets/fonts/NotoNaskh/NotoNaskhArabic-Regular.ttf',
+        'assets/fonts/Vazir/Vazirmatn-Regular.ttf',
       );
       _persianRegular = pw.Font.ttf(persianRegularData);
 
       // Load bold font
       final ByteData persianBoldData = await rootBundle.load(
-        'assets/fonts/NotoNaskh/NotoNaskhArabic-Bold.ttf',
+        'assets/fonts/Vazir/Vazirmatn-Bold.ttf',
       );
       _persianBold = pw.Font.ttf(persianBoldData);
 
@@ -89,12 +89,12 @@ abstract class PrintServices {
     try {
 
       final ByteData persianRegularData = await rootBundle.load(
-        'assets/fonts/Amiri/Amiri-Regular.ttf',
+        'assets/fonts/Vazir/Vazirmatn-Regular.ttf',
       );
       _persianRegular = pw.Font.ttf(persianRegularData);
 
       final ByteData persianBoldData = await rootBundle.load(
-        'assets/fonts/Amiri/Amiri-Bold.ttf',
+        'assets/fonts/Vazir/Vazirmatn-Bold.ttf',
       );
 
       _persianBold = pw.Font.ttf(persianBoldData);

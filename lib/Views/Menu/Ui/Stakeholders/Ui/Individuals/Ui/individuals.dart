@@ -306,7 +306,7 @@ class _DesktopState extends State<_Desktop> {
                     onPressed: onRefresh,
                     label: Text(tr.refresh),
                   ),
-                  if (login.hasPermission(106) ?? false)
+                 // if (login.hasPermission(106) ?? false)
                     ZOutlineButton(
                       toolTip: "F1",
                       width: 120,

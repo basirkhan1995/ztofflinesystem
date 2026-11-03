@@ -136,7 +136,7 @@ class _OrderTxnDialogState extends State<_OrderTxnDialog> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              orderTxn?.trnEntryDate?.toDateTime ?? "-",
+                              orderTxn?.trnEntryDate?.shamsiDateString ?? "-",
                               style: textTheme.bodySmall,
                             ),
                           ],
