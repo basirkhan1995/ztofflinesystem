@@ -7,7 +7,7 @@ import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/%D9%8FSingleProduct/single_product_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/SingleProduct/single_product_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../../../../../../../Features/Other/toast.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';

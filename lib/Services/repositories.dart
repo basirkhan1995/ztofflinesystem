@@ -243,6 +243,7 @@ class Repositories {
     );
     return response.data;
   }
+
   Future<IndividualsModel> getPersonProfileById({required int perId, CancelToken? cancelToken}) async {
     final response = await api.get(
       endpoint: "/stakeholder/personal.php",

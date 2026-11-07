@@ -76,7 +76,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/bloc/company_settin
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/bloc/user_profile_settings_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Services/bloc/services_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductCategory/bloc/pro_cat_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/%D9%8FSingleProduct/single_product_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/SingleProduct/single_product_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/bloc/stock_settings_tab_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/TxnTypes/bloc/txn_types_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
